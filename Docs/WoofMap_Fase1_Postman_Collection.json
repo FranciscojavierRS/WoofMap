@@ -1,0 +1,176 @@
+﻿{
+  "info": {
+    "name": "WoofMap - Fase 1 (CRUD Lugares)",
+    "_postman_id": "woofmap-fase1-collection",
+    "description": "Coleccion de pruebas para la Fase 1 de WoofMap: CRUD de Lugares y busqueda espacial con PostGIS",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Crear Lugar (Parque del Retiro)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Parque Canino del Retiro\",\n  \"descripcion\": \"Amplia zona ajardinada y cercada con fuentes de agua para perros.\",\n  \"categoria\": \"PARQUE\",\n  \"lat\": 40.4153,\n  \"lon\": -3.6844\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/lugares",
+          "host": ["{{baseUrl}}"],
+          "path": ["lugares"]
+        }
+      }
+    },
+    {
+      "name": "2. Crear Lugar (Pipican Sol)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Area Canina Puerta del Sol\",\n  \"descripcion\": \"Zona acotada para paseos urbanos.\",\n  \"categoria\": \"PIPICAN\",\n  \"lat\": 40.4169,\n  \"lon\": -3.7036\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/lugares",
+          "host": ["{{baseUrl}}"],
+          "path": ["lugares"]
+        }
+      }
+    },
+    {
+      "name": "3. Listar Lugares (Todos)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/lugares",
+          "host": ["{{baseUrl}}"],
+          "path": ["lugares"]
+        }
+      }
+    },
+    {
+      "name": "4. Buscar Lugares Cercanos (Proximidad con PostGIS)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/lugares?lat=40.4168&lon=-3.7038&radio=5000",
+          "host": ["{{baseUrl}}"],
+          "path": ["lugares"],
+          "query": [
+            {
+              "key": "lat",
+              "value": "40.4168"
+            },
+            {
+              "key": "lon",
+              "value": "-3.7038"
+            },
+            {
+              "key": "radio",
+              "value": "5000"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "5. Filtrar Lugares por Categoria (PARQUE)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/lugares?categoria=PARQUE",
+          "host": ["{{baseUrl}}"],
+          "path": ["lugares"],
+          "query": [
+            {
+              "key": "categoria",
+              "value": "PARQUE"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "6. Obtener Lugar por ID",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/lugares/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["lugares", "1"]
+        }
+      }
+    },
+    {
+      "name": "7. Editar Lugar",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Parque Canino del Retiro Renovado\",\n  \"descripcion\": \"Instalaciones renovadas con nuevos juegos de agilidad.\",\n  \"categoria\": \"PARQUE\",\n  \"lat\": 40.4150,\n  \"lon\": -3.6840\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/lugares/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["lugares", "1"]
+        }
+      }
+    },
+    {
+      "name": "8. Eliminar Lugar",
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "{{baseUrl}}/lugares/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["lugares", "1"]
+        }
+      }
+    },
+    {
+      "name": "9. Validacion Fallida (400 Bad Request)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"\",\n  \"categoria\": \"\",\n  \"lat\": 150.0,\n  \"lon\": -250.0\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/lugares",
+          "host": ["{{baseUrl}}"],
+          "path": ["lugares"]
+        }
+      }
+    }
+  ]
+}
