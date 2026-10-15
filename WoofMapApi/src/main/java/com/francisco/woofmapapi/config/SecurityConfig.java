@@ -82,9 +82,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // OpenAPI / Swagger
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        // Archivos de imagen servidos publicamente
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         // Autenticacion publica
                         .requestMatchers("/auth/**").permitAll()
-                        // Consultas publicas de lugares
+                        // Consultas publicas de lugares y comentarios
                         .requestMatchers(HttpMethod.GET, "/lugares/**").permitAll()
                         // Creacion, edicion y borrado de lugares protegidos
                         .requestMatchers(HttpMethod.POST, "/lugares").authenticated()

@@ -5,6 +5,7 @@ import com.francisco.woofmapapi.dto.LugarResponse;
 import com.francisco.woofmapapi.entity.Lugar;
 import com.francisco.woofmapapi.entity.Usuario;
 import com.francisco.woofmapapi.exception.ResourceNotFoundException;
+import com.francisco.woofmapapi.repository.ComentarioRepository;
 import com.francisco.woofmapapi.repository.LugarRepository;
 import com.francisco.woofmapapi.repository.UsuarioRepository;
 import com.francisco.woofmapapi.util.GeometryUtils;
@@ -29,11 +30,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class LugarServiceTest {
 
-    @Mock
-    private LugarRepository lugarRepository;
-
-    @Mock
-    private UsuarioRepository usuarioRepository;
+    @Mock private LugarRepository lugarRepository;
+    @Mock private UsuarioRepository usuarioRepository;
+    @Mock private ComentarioRepository comentarioRepository;
 
     @InjectMocks
     private LugarService lugarService;
@@ -107,15 +106,32 @@ class LugarServiceTest {
     }
 
     @Test
-    @DisplayName("Debe obtener un lugar por id si existe")
+    @DisplayName("Debe obtener un lugar por id si existe, con valoracion media")
     void debeObtenerLugarPorId() {
         when(lugarRepository.findById(10L)).thenReturn(Optional.of(lugarMock));
+        when(comentarioRepository.calcularMediaValoracion(10L)).thenReturn(Optional.of(4.5));
+        when(comentarioRepository.countByLugarId(10L)).thenReturn(3L);
 
         LugarResponse response = lugarService.obtenerPorId(10L);
 
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(10L);
         assertThat(response.nombre()).isEqualTo("Parque Canino del Retiro");
+        assertThat(response.valoracionMedia()).isEqualTo(4.5);
+        assertThat(response.totalComentarios()).isEqualTo(3L);
+    }
+
+    @Test
+    @DisplayName("Debe obtener un lugar con valoracion null si no tiene comentarios")
+    void debeObtenerLugarSinComentarios() {
+        when(lugarRepository.findById(10L)).thenReturn(Optional.of(lugarMock));
+        when(comentarioRepository.calcularMediaValoracion(10L)).thenReturn(Optional.empty());
+        when(comentarioRepository.countByLugarId(10L)).thenReturn(0L);
+
+        LugarResponse response = lugarService.obtenerPorId(10L);
+
+        assertThat(response.valoracionMedia()).isNull();
+        assertThat(response.totalComentarios()).isEqualTo(0L);
     }
 
     @Test
@@ -192,14 +208,10 @@ class LugarServiceTest {
         when(lugarRepository.findById(10L)).thenReturn(Optional.of(lugarMock));
 
         LugarRequest updateRequest = new LugarRequest(
-                "Parque Modificado",
-                "Descripcion",
-                "PARQUE",
-                40.4150,
-                -3.6840
+                "Parque Modificado", "Descripcion", "PARQUE", 40.4150, -3.6840
         );
 
-        assertThatThrownBy(() -> lugarService.editarLugar(10L, updateRequest, 2L)) // Usuario 2 intenta editar lugar de Usuario 1
+        assertThatThrownBy(() -> lugarService.editarLugar(10L, updateRequest, 2L))
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessageContaining("Solo el creador puede editarlo");
 
@@ -221,7 +233,7 @@ class LugarServiceTest {
     void debeLanzarAccessDeniedAlEliminarSiNoEsCreador() {
         when(lugarRepository.findById(10L)).thenReturn(Optional.of(lugarMock));
 
-        assertThatThrownBy(() -> lugarService.eliminarLugar(10L, 2L)) // Usuario 2 intenta eliminar lugar de Usuario 1
+        assertThatThrownBy(() -> lugarService.eliminarLugar(10L, 2L))
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessageContaining("Solo el creador puede eliminarlo");
 

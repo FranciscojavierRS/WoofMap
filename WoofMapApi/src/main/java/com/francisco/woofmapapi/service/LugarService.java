@@ -5,6 +5,7 @@ import com.francisco.woofmapapi.dto.LugarResponse;
 import com.francisco.woofmapapi.entity.Lugar;
 import com.francisco.woofmapapi.entity.Usuario;
 import com.francisco.woofmapapi.exception.ResourceNotFoundException;
+import com.francisco.woofmapapi.repository.ComentarioRepository;
 import com.francisco.woofmapapi.repository.LugarRepository;
 import com.francisco.woofmapapi.repository.UsuarioRepository;
 import com.francisco.woofmapapi.util.GeometryUtils;
@@ -22,10 +23,14 @@ public class LugarService {
 
     private final LugarRepository lugarRepository;
     private final UsuarioRepository usuarioRepository;
+    private final ComentarioRepository comentarioRepository;
 
-    public LugarService(LugarRepository lugarRepository, UsuarioRepository usuarioRepository) {
+    public LugarService(LugarRepository lugarRepository,
+                        UsuarioRepository usuarioRepository,
+                        ComentarioRepository comentarioRepository) {
         this.lugarRepository = lugarRepository;
         this.usuarioRepository = usuarioRepository;
+        this.comentarioRepository = comentarioRepository;
     }
 
     public LugarResponse crearLugar(LugarRequest request, Long usuarioId) {
@@ -60,13 +65,15 @@ public class LugarService {
     public LugarResponse obtenerPorId(Long id) {
         Lugar lugar = lugarRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lugar no encontrado con id: " + id));
-        return toResponse(lugar, null);
+        Double media = comentarioRepository.calcularMediaValoracion(id).orElse(null);
+        long total = comentarioRepository.countByLugarId(id);
+        return toResponseConValoracion(lugar, null, media, total);
     }
 
     @Transactional(readOnly = true)
     public List<LugarResponse> listarLugares(Double lat, Double lon, Double radio, String categoria) {
         if (lat != null && lon != null) {
-            double radioMetros = (radio != null && radio > 0) ? radio : 10000.0; // defecto 10 km
+            double radioMetros = (radio != null && radio > 0) ? radio : 10000.0;
             List<Lugar> lugares;
             if (categoria != null && !categoria.isBlank()) {
                 lugares = lugarRepository.findNearbyWithCategory(lat, lon, radioMetros, categoria.trim());
@@ -126,6 +133,8 @@ public class LugarService {
         lugarRepository.delete(lugar);
     }
 
+    // ── Métodos auxiliares ───────────────────────────────────────────────────────
+
     private LugarResponse toResponse(Lugar lugar, Double distanciaMetros) {
         return new LugarResponse(
                 lugar.getId(),
@@ -137,6 +146,23 @@ public class LugarService {
                 lugar.getUsuario() != null ? lugar.getUsuario().getId() : null,
                 lugar.getFechaCreacion(),
                 distanciaMetros
+        );
+    }
+
+    private LugarResponse toResponseConValoracion(Lugar lugar, Double distanciaMetros,
+                                                   Double valoracionMedia, long totalComentarios) {
+        return new LugarResponse(
+                lugar.getId(),
+                lugar.getNombre(),
+                lugar.getDescripcion(),
+                lugar.getCategoria(),
+                GeometryUtils.getLat(lugar.getUbicacion()),
+                GeometryUtils.getLon(lugar.getUbicacion()),
+                lugar.getUsuario() != null ? lugar.getUsuario().getId() : null,
+                lugar.getFechaCreacion(),
+                distanciaMetros,
+                valoracionMedia,
+                totalComentarios
         );
     }
 }
