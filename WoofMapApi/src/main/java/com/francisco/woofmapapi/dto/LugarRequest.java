@@ -29,4 +29,7 @@ public record LugarRequest(
 
         Long usuarioId
 ) {
+    public LugarRequest(String nombre, String descripcion, String categoria, Double lat, Double lon) {
+        this(nombre, descripcion, categoria, lat, lon, null);
+    }
 }

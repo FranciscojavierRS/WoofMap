@@ -2,6 +2,7 @@ package com.francisco.woofmapapi.controller;
 
 import com.francisco.woofmapapi.dto.LugarRequest;
 import com.francisco.woofmapapi.dto.LugarResponse;
+import com.francisco.woofmapapi.security.UserPrincipal;
 import com.francisco.woofmapapi.service.LugarService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -27,13 +29,18 @@ public class LugarController {
     }
 
     @PostMapping
-    @Operation(summary = "Crear un nuevo lugar", description = "Registra un nuevo lugar dog-friendly con coordenadas geograficas.")
+    @Operation(summary = "Crear un nuevo lugar", description = "Registra un nuevo lugar dog-friendly con coordenadas geograficas asociado al usuario autenticado.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Lugar creado exitosamente"),
-            @ApiResponse(responseCode = "400", description = "Datos de entrada invalidos")
+            @ApiResponse(responseCode = "400", description = "Datos de entrada invalidos"),
+            @ApiResponse(responseCode = "401", description = "No autorizado: se requiere token JWT")
     })
-    public ResponseEntity<LugarResponse> crearLugar(@Valid @RequestBody LugarRequest request) {
-        LugarResponse response = lugarService.crearLugar(request);
+    public ResponseEntity<LugarResponse> crearLugar(
+            @Valid @RequestBody LugarRequest request,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        Long usuarioId = (principal != null) ? principal.getId() : request.usuarioId();
+        LugarResponse response = lugarService.crearLugar(request, usuarioId);
         URI location = URI.create("/lugares/" + response.id());
         return ResponseEntity.created(location).body(response);
     }
@@ -63,27 +70,37 @@ public class LugarController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Editar un lugar", description = "Actualiza los datos de un lugar existente.")
+    @Operation(summary = "Editar un lugar", description = "Actualiza los datos de un lugar existente (solo permitido al usuario creador).")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lugar actualizado"),
             @ApiResponse(responseCode = "400", description = "Datos invalidos"),
+            @ApiResponse(responseCode = "401", description = "No autorizado: se requiere token JWT"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado: solo el creador puede editarlo"),
             @ApiResponse(responseCode = "404", description = "Lugar no encontrado")
     })
     public ResponseEntity<LugarResponse> editarLugar(
             @PathVariable Long id,
-            @Valid @RequestBody LugarRequest request
+            @Valid @RequestBody LugarRequest request,
+            @AuthenticationPrincipal UserPrincipal principal
     ) {
-        return ResponseEntity.ok(lugarService.editarLugar(id, request));
+        Long usuarioId = (principal != null) ? principal.getId() : request.usuarioId();
+        return ResponseEntity.ok(lugarService.editarLugar(id, request, usuarioId));
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar un lugar", description = "Elimina un lugar por su identificador.")
+    @Operation(summary = "Eliminar un lugar", description = "Elimina un lugar por su identificador (solo permitido al usuario creador).")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Lugar eliminado exitosamente"),
+            @ApiResponse(responseCode = "401", description = "No autorizado: se requiere token JWT"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado: solo el creador puede eliminarlo"),
             @ApiResponse(responseCode = "404", description = "Lugar no encontrado")
     })
-    public ResponseEntity<Void> eliminarLugar(@PathVariable Long id) {
-        lugarService.eliminarLugar(id);
+    public ResponseEntity<Void> eliminarLugar(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        Long usuarioId = (principal != null) ? principal.getId() : null;
+        lugarService.eliminarLugar(id, usuarioId);
         return ResponseEntity.noContent().build();
     }
 }

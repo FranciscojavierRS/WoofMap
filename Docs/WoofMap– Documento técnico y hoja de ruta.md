@@ -268,35 +268,35 @@ La planificación se divide en fases con tareas verificables. Cada fase termina 
 - [X] Decidir la librería de mapas (MapLibre/OSMDroid o Google Maps).
 - [X] Configurar Maven para compilar con Java 25 y confirmar la versión de Spring Boot compatible.
 - [X] Preparar la base de tests: JUnit 5, Mockito, AssertJ, Testcontainers (PostGIS) y JaCoCo.
-- [ ] Configurar GitHub Actions para ejecutar los tests en cada push.
-- [ ] Acordar la definición de "hecho" (TDD, SOLID y KISS) del apartado 4.6.
+- [X] Configurar GitHub Actions para ejecutar los tests en cada push.
+- [X] Acordar la definición de "hecho" (TDD, SOLID y KISS) del apartado 4.6.
 
 ### Fase 1 · Backend base y base de datos
 
 *Entregable: API con CRUD de lugares funcionando en Docker.*
 
-- [ ] Generar el proyecto Spring Boot (Web, JPA, PostgreSQL, Validation, Flyway, Security, SpringDoc).
-- [ ] Escribir el `docker-compose.yml` con los servicios `db` y `api`, y el fichero `.env`.
-- [ ] Escribir el Dockerfile multi-stage del backend.
-- [ ] Crear las migraciones Flyway: extensión PostGIS, tablas de usuarios, lugares, fotos y comentarios.
-- [ ] Crear entidades JPA y repositorios.
-- [ ] Implementar el CRUD de lugares con DTOs (records) y validación, escribiendo antes los tests de cada caso de uso.
-- [ ] Implementar la consulta de lugares cercanos (`lat`, `lon`, `radio`) con PostGIS.
-- [ ] Añadir manejo global de errores (`@ControllerAdvice`).
-- [ ] Activar Swagger UI y probar los endpoints en Postman.
+- [X] Generar el proyecto Spring Boot (Web, JPA, PostgreSQL, Validation, Flyway, Security, SpringDoc).
+- [X] Escribir el `docker-compose.yml` con los servicios `db` y `api`, y el fichero `.env`.
+- [X] Escribir el Dockerfile multi-stage del backend.
+- [X] Crear las migraciones Flyway: extensión PostGIS, tablas de usuarios, lugares, fotos y comentarios.
+- [X] Crear entidades JPA y repositorios.
+- [X] Implementar el CRUD de lugares con DTOs (records) y validación, escribiendo antes los tests de cada caso de uso.
+- [X] Implementar la consulta de lugares cercanos (`lat`, `lon`, `radio`) con PostGIS.
+- [X] Añadir manejo global de errores (`@ControllerAdvice`).
+- [X] Activar Swagger UI y probar los endpoints en Postman.
 
 ### Fase 2 · Autenticación y usuarios
 
 *Entregable: registro y login con JWT, endpoints protegidos.*
 
-- [ ] Crear la entidad `Usuario` y su repositorio.
-- [ ] Implementar `JwtService` (generación y validación de tokens).
-- [ ] Implementar `AuthService`, `POST /auth/register` y `POST /auth/login` con BCrypt.
-- [ ] Implementar `JwtAuthFilter` y la configuración de `SecurityFilterChain`.
-- [ ] Asociar cada lugar a su creador usando el usuario autenticado.
-- [ ] Restringir edición y borrado al creador (403 en caso contrario).
-- [ ] Escribir primero los tests de AuthService y JwtService (TDD) y aplicar después su implementación.
-- [ ] Probar los flujos de seguridad en Postman (sin token, token inválido, recurso ajeno).
+- [X] Crear la entidad `Usuario` y su repositorio.
+- [X] Implementar `JwtService` (generación y validación de tokens).
+- [X] Implementar `AuthService`, `POST /auth/register` y `POST /auth/login` con BCrypt.
+- [X] Implementar `JwtAuthFilter` y la configuración de `SecurityFilterChain`.
+- [X] Asociar cada lugar a su creador usando el usuario autenticado.
+- [X] Restringir edición y borrado al creador (403 en caso contrario).
+- [X] Escribir primero los tests de AuthService y JwtService (TDD) y aplicar después su implementación.
+- [X] Probar los flujos de seguridad en Postman (sin token, token inválido, recurso ajeno).
 
 ### Fase 3 · Fotos y comentarios (backend)
 
@@ -384,3 +384,5 @@ La planificación se divide en fases con tareas verificables. Cada fase termina 
 ## 13. Conclusiones y líneas futuras
 
 *(Apartado a completar al finalizar el proyecto.)* Posibles líneas futuras: versión iOS, notificaciones push, recomendaciones personalizadas, moderación comunitaria y despliegue en la nube.
+
+

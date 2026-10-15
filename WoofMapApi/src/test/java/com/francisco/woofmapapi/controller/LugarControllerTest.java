@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -73,7 +74,7 @@ class LugarControllerTest {
                 null
         );
 
-        when(lugarService.crearLugar(any(LugarRequest.class))).thenReturn(response);
+        when(lugarService.crearLugar(any(LugarRequest.class), any())).thenReturn(response);
 
         mockMvc.perform(post("/lugares")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -109,7 +110,7 @@ class LugarControllerTest {
                 .andExpect(jsonPath("$.validationErrors.lat").exists())
                 .andExpect(jsonPath("$.validationErrors.lon").exists());
 
-        verify(lugarService, never()).crearLugar(any());
+        verify(lugarService, never()).crearLugar(any(), any());
     }
 
     @Test
@@ -198,7 +199,7 @@ class LugarControllerTest {
                 null
         );
 
-        when(lugarService.editarLugar(eq(1L), any(LugarRequest.class))).thenReturn(updatedResponse);
+        when(lugarService.editarLugar(eq(1L), any(LugarRequest.class), any())).thenReturn(updatedResponse);
 
         mockMvc.perform(put("/lugares/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -209,13 +210,48 @@ class LugarControllerTest {
     }
 
     @Test
+    @DisplayName("PUT /lugares/{id} cuando el usuario no es creador debe devolver 403 Forbidden")
+    void debeDevolver403AlEditarSiNoEsCreador() throws Exception {
+        LugarRequest updateRequest = new LugarRequest(
+                "Pipican Renovado",
+                "Con mas obstaculos",
+                "PIPICAN",
+                40.4168,
+                -3.7038,
+                1L
+        );
+
+        when(lugarService.editarLugar(eq(1L), any(LugarRequest.class), any()))
+                .thenThrow(new AccessDeniedException("No tienes permisos para modificar este lugar. Solo el creador puede editarlo."));
+
+        mockMvc.perform(put("/lugares/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.message").value("No tienes permisos para modificar este lugar. Solo el creador puede editarlo."));
+    }
+
+    @Test
     @DisplayName("DELETE /lugares/{id} debe devolver 204 No Content")
     void debeEliminarLugar() throws Exception {
-        doNothing().when(lugarService).eliminarLugar(1L);
+        doNothing().when(lugarService).eliminarLugar(eq(1L), any());
 
         mockMvc.perform(delete("/lugares/1"))
                 .andExpect(status().isNoContent());
 
-        verify(lugarService).eliminarLugar(1L);
+        verify(lugarService).eliminarLugar(eq(1L), any());
+    }
+
+    @Test
+    @DisplayName("DELETE /lugares/{id} cuando el usuario no es creador debe devolver 403 Forbidden")
+    void debeDevolver403AlEliminarSiNoEsCreador() throws Exception {
+        doThrow(new AccessDeniedException("No tienes permisos para eliminar este lugar. Solo el creador puede eliminarlo."))
+                .when(lugarService).eliminarLugar(eq(1L), any());
+
+        mockMvc.perform(delete("/lugares/1"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.message").value("No tienes permisos para eliminar este lugar. Solo el creador puede eliminarlo."));
     }
 }

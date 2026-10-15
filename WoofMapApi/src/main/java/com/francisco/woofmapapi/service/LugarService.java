@@ -9,6 +9,7 @@ import com.francisco.woofmapapi.repository.LugarRepository;
 import com.francisco.woofmapapi.repository.UsuarioRepository;
 import com.francisco.woofmapapi.util.GeometryUtils;
 import org.locationtech.jts.geom.Point;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,22 +28,13 @@ public class LugarService {
         this.usuarioRepository = usuarioRepository;
     }
 
-    public LugarResponse crearLugar(LugarRequest request) {
-        Usuario usuario;
-        if (request.usuarioId() != null) {
-            usuario = usuarioRepository.findById(request.usuarioId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con id: " + request.usuarioId()));
-        } else {
-            // En Fase 1 (sin JWT obligatorio todavia), usar el primer usuario disponible o crear uno por defecto
-            usuario = usuarioRepository.findAll().stream().findFirst()
-                    .orElseGet(() -> usuarioRepository.save(new Usuario(
-                            null,
-                            "Usuario Predeterminado",
-                            "default@woofmap.com",
-                            "placeholder",
-                            Instant.now()
-                    )));
+    public LugarResponse crearLugar(LugarRequest request, Long usuarioId) {
+        if (usuarioId == null) {
+            throw new AccessDeniedException("Se requiere autenticacion para crear un lugar");
         }
+
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con id: " + usuarioId));
 
         Point ubicacion = GeometryUtils.createPoint(request.lat(), request.lon());
 
@@ -58,6 +50,10 @@ public class LugarService {
 
         Lugar guardado = lugarRepository.save(lugar);
         return toResponse(guardado, null);
+    }
+
+    public LugarResponse crearLugar(LugarRequest request) {
+        return crearLugar(request, request.usuarioId());
     }
 
     @Transactional(readOnly = true)
@@ -102,9 +98,13 @@ public class LugarService {
                 .toList();
     }
 
-    public LugarResponse editarLugar(Long id, LugarRequest request) {
+    public LugarResponse editarLugar(Long id, LugarRequest request, Long usuarioId) {
         Lugar lugar = lugarRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lugar no encontrado con id: " + id));
+
+        if (usuarioId == null || !lugar.getUsuario().getId().equals(usuarioId)) {
+            throw new AccessDeniedException("No tienes permisos para modificar este lugar. Solo el creador puede editarlo.");
+        }
 
         lugar.setNombre(request.nombre());
         lugar.setDescripcion(request.descripcion());
@@ -115,11 +115,15 @@ public class LugarService {
         return toResponse(actualizado, null);
     }
 
-    public void eliminarLugar(Long id) {
-        if (!lugarRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Lugar no encontrado con id: " + id);
+    public void eliminarLugar(Long id, Long usuarioId) {
+        Lugar lugar = lugarRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Lugar no encontrado con id: " + id));
+
+        if (usuarioId == null || !lugar.getUsuario().getId().equals(usuarioId)) {
+            throw new AccessDeniedException("No tienes permisos para eliminar este lugar. Solo el creador puede eliminarlo.");
         }
-        lugarRepository.deleteById(id);
+
+        lugarRepository.delete(lugar);
     }
 
     private LugarResponse toResponse(Lugar lugar, Double distanciaMetros) {

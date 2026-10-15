@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.Instant;
 import java.util.List;
@@ -55,15 +56,14 @@ class LugarServiceTest {
     }
 
     @Test
-    @DisplayName("Debe crear un lugar correctamente cuando el usuario existe")
+    @DisplayName("Debe crear un lugar correctamente asociado al usuario autenticado")
     void debeCrearLugarCorrectamente() {
         LugarRequest request = new LugarRequest(
                 "Parque Canino del Retiro",
                 "Zona amplia vallada con fuentes para perros",
                 "PARQUE",
                 40.4153,
-                -3.6844,
-                1L
+                -3.6844
         );
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioMock));
@@ -73,7 +73,7 @@ class LugarServiceTest {
             return l;
         });
 
-        LugarResponse response = lugarService.crearLugar(request);
+        LugarResponse response = lugarService.crearLugar(request, 1L);
 
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(10L);
@@ -87,20 +87,19 @@ class LugarServiceTest {
     }
 
     @Test
-    @DisplayName("Debe lanzar excepcion al crear lugar si el usuario no existe")
+    @DisplayName("Debe lanzar excepcion al crear lugar si el usuario autenticado no existe")
     void debeLanzarExcepcionAlCrearSiUsuarioNoExiste() {
         LugarRequest request = new LugarRequest(
                 "Parque Canino",
                 "Descripcion",
                 "PARQUE",
                 40.4153,
-                -3.6844,
-                999L
+                -3.6844
         );
 
         when(usuarioRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> lugarService.crearLugar(request))
+        assertThatThrownBy(() -> lugarService.crearLugar(request, 999L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Usuario no encontrado");
 
@@ -166,8 +165,8 @@ class LugarServiceTest {
     }
 
     @Test
-    @DisplayName("Debe editar un lugar existente")
-    void debeEditarLugar() {
+    @DisplayName("Debe editar un lugar existente cuando el usuario autenticado es el creador")
+    void debeEditarLugarCuandoEsCreador() {
         when(lugarRepository.findById(10L)).thenReturn(Optional.of(lugarMock));
         when(lugarRepository.save(any(Lugar.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -176,11 +175,10 @@ class LugarServiceTest {
                 "Nueva zona con agilidad canina",
                 "PARQUE",
                 40.4150,
-                -3.6840,
-                1L
+                -3.6840
         );
 
-        LugarResponse response = lugarService.editarLugar(10L, updateRequest);
+        LugarResponse response = lugarService.editarLugar(10L, updateRequest, 1L);
 
         assertThat(response.nombre()).isEqualTo("Parque Canino del Retiro Renovado");
         assertThat(response.descripcion()).isEqualTo("Nueva zona con agilidad canina");
@@ -189,24 +187,56 @@ class LugarServiceTest {
     }
 
     @Test
-    @DisplayName("Debe eliminar un lugar por id")
-    void debeEliminarLugar() {
-        when(lugarRepository.existsById(10L)).thenReturn(true);
+    @DisplayName("Debe lanzar AccessDeniedException al editar si el usuario no es el creador")
+    void debeLanzarAccessDeniedAlEditarSiNoEsCreador() {
+        when(lugarRepository.findById(10L)).thenReturn(Optional.of(lugarMock));
 
-        lugarService.eliminarLugar(10L);
+        LugarRequest updateRequest = new LugarRequest(
+                "Parque Modificado",
+                "Descripcion",
+                "PARQUE",
+                40.4150,
+                -3.6840
+        );
 
-        verify(lugarRepository).deleteById(10L);
+        assertThatThrownBy(() -> lugarService.editarLugar(10L, updateRequest, 2L)) // Usuario 2 intenta editar lugar de Usuario 1
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessageContaining("Solo el creador puede editarlo");
+
+        verify(lugarRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("Debe lanzar excepcion al intentar eliminar un lugar inexistente")
-    void debeLanzarExcepcionAlEliminarInexistente() {
-        when(lugarRepository.existsById(999L)).thenReturn(false);
+    @DisplayName("Debe eliminar un lugar por id cuando el usuario es el creador")
+    void debeEliminarLugarCuandoEsCreador() {
+        when(lugarRepository.findById(10L)).thenReturn(Optional.of(lugarMock));
 
-        assertThatThrownBy(() -> lugarService.eliminarLugar(999L))
+        lugarService.eliminarLugar(10L, 1L);
+
+        verify(lugarRepository).delete(lugarMock);
+    }
+
+    @Test
+    @DisplayName("Debe lanzar AccessDeniedException al eliminar si el usuario no es el creador")
+    void debeLanzarAccessDeniedAlEliminarSiNoEsCreador() {
+        when(lugarRepository.findById(10L)).thenReturn(Optional.of(lugarMock));
+
+        assertThatThrownBy(() -> lugarService.eliminarLugar(10L, 2L)) // Usuario 2 intenta eliminar lugar de Usuario 1
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessageContaining("Solo el creador puede eliminarlo");
+
+        verify(lugarRepository, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("Debe lanzar ResourceNotFoundException al intentar eliminar un lugar inexistente")
+    void debeLanzarExcepcionAlEliminarInexistente() {
+        when(lugarRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> lugarService.eliminarLugar(999L, 1L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Lugar no encontrado");
 
-        verify(lugarRepository, never()).deleteById(any());
+        verify(lugarRepository, never()).delete(any());
     }
 }
