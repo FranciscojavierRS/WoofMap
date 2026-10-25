@@ -25,11 +25,6 @@ public record LugarRequest(
         @NotNull(message = "La longitud es obligatoria")
         @DecimalMin(value = "-180.0", message = "La longitud debe ser >= -180.0")
         @DecimalMax(value = "180.0", message = "La longitud debe ser <= 180.0")
-        Double lon,
-
-        Long usuarioId
+        Double lon
 ) {
-    public LugarRequest(String nombre, String descripcion, String categoria, Double lat, Double lon) {
-        this(nombre, descripcion, categoria, lat, lon, null);
-    }
 }

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -48,8 +49,8 @@ public class AlmacenamientoFotosDisco implements AlmacenamientoFotos {
         String nombreArchivo = UUID.randomUUID() + extension;
         Path destino = directorioBase.resolve(nombreArchivo);
 
-        try {
-            Files.copy(archivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
+        try (InputStream entrada = archivo.getInputStream()) {
+            Files.copy(entrada, destino, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new StorageException("Error al guardar el archivo: " + nombreArchivo, e);
         }
@@ -62,8 +63,13 @@ public class AlmacenamientoFotosDisco implements AlmacenamientoFotos {
         if (rutaRelativa == null || rutaRelativa.isBlank()) {
             return;
         }
-        String nombreArchivo = rutaRelativa.replace("/uploads/", "");
-        Path archivo = directorioBase.resolve(nombreArchivo);
+        String nombreArchivo = rutaRelativa.startsWith("/uploads/")
+                ? rutaRelativa.substring("/uploads/".length())
+                : rutaRelativa;
+        Path archivo = directorioBase.resolve(nombreArchivo).normalize();
+        if (!archivo.startsWith(directorioBase)) {
+            throw new StorageException("Ruta de archivo no permitida: " + rutaRelativa);
+        }
         try {
             Files.deleteIfExists(archivo);
         } catch (IOException e) {

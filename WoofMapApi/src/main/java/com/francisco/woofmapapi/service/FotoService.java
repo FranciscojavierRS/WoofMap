@@ -9,6 +9,7 @@ import com.francisco.woofmapapi.repository.FotoRepository;
 import com.francisco.woofmapapi.repository.LugarRepository;
 import com.francisco.woofmapapi.repository.UsuarioRepository;
 import com.francisco.woofmapapi.service.storage.AlmacenamientoFotos;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,8 @@ import java.util.List;
 @Service
 @Transactional
 public class FotoService {
+
+    private static final int LIMITE_LISTADO = 200;
 
     private final FotoRepository fotoRepository;
     private final LugarRepository lugarRepository;
@@ -49,10 +52,19 @@ public class FotoService {
 
         String url = almacenamientoFotos.guardar(archivo);
 
-        Foto foto = new Foto(null, url, lugar, usuario, Instant.now());
-        Foto guardada = fotoRepository.save(foto);
-
-        return toResponse(guardada);
+        try {
+            Foto foto = new Foto(null, url, lugar, usuario, Instant.now());
+            Foto guardada = fotoRepository.save(foto);
+            return toResponse(guardada);
+        } catch (RuntimeException e) {
+            // Si la base de datos falla, no dejamos el archivo huerfano en el disco.
+            try {
+                almacenamientoFotos.eliminar(url);
+            } catch (RuntimeException ignored) {
+                // No ocultamos el error original si la limpieza tambien falla.
+            }
+            throw e;
+        }
     }
 
     @Transactional(readOnly = true)
@@ -60,7 +72,7 @@ public class FotoService {
         if (!lugarRepository.existsById(lugarId)) {
             throw new ResourceNotFoundException("Lugar no encontrado con id: " + lugarId);
         }
-        return fotoRepository.findByLugarIdOrderByFechaSubidaDesc(lugarId)
+        return fotoRepository.findByLugarIdOrderByFechaSubidaDesc(lugarId, PageRequest.of(0, LIMITE_LISTADO))
                 .stream()
                 .map(this::toResponse)
                 .toList();

@@ -2,12 +2,15 @@ package com.francisco.woofmapapi.service;
 
 import com.francisco.woofmapapi.dto.LugarRequest;
 import com.francisco.woofmapapi.dto.LugarResponse;
+import com.francisco.woofmapapi.entity.Foto;
 import com.francisco.woofmapapi.entity.Lugar;
 import com.francisco.woofmapapi.entity.Usuario;
 import com.francisco.woofmapapi.exception.ResourceNotFoundException;
 import com.francisco.woofmapapi.repository.ComentarioRepository;
+import com.francisco.woofmapapi.repository.FotoRepository;
 import com.francisco.woofmapapi.repository.LugarRepository;
 import com.francisco.woofmapapi.repository.UsuarioRepository;
+import com.francisco.woofmapapi.service.storage.AlmacenamientoFotos;
 import com.francisco.woofmapapi.util.GeometryUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +19,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.time.Instant;
@@ -33,6 +38,8 @@ class LugarServiceTest {
     @Mock private LugarRepository lugarRepository;
     @Mock private UsuarioRepository usuarioRepository;
     @Mock private ComentarioRepository comentarioRepository;
+    @Mock private FotoRepository fotoRepository;
+    @Mock private AlmacenamientoFotos almacenamientoFotos;
 
     @InjectMocks
     private LugarService lugarService;
@@ -60,7 +67,7 @@ class LugarServiceTest {
         LugarRequest request = new LugarRequest(
                 "Parque Canino del Retiro",
                 "Zona amplia vallada con fuentes para perros",
-                "PARQUE",
+                "parque",
                 40.4153,
                 -3.6844
         );
@@ -103,6 +110,17 @@ class LugarServiceTest {
                 .hasMessageContaining("Usuario no encontrado");
 
         verify(lugarRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Debe rechazar crear un lugar sin usuario autenticado")
+    void debeRechazarCrearSinUsuario() {
+        LugarRequest request = new LugarRequest("Parque", "Desc", "PARQUE", 40.0, -3.0);
+
+        assertThatThrownBy(() -> lugarService.crearLugar(request, null))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verifyNoInteractions(lugarRepository);
     }
 
     @Test
@@ -151,7 +169,7 @@ class LugarServiceTest {
         double lonUser = -3.7038;
         double radioMetros = 5000.0;
 
-        when(lugarRepository.findNearby(latUser, lonUser, radioMetros))
+        when(lugarRepository.buscarCercanos(latUser, lonUser, radioMetros, null, 200))
                 .thenReturn(List.of(lugarMock));
 
         List<LugarResponse> result = lugarService.listarLugares(latUser, lonUser, radioMetros, null);
@@ -164,20 +182,62 @@ class LugarServiceTest {
     }
 
     @Test
-    @DisplayName("Debe listar lugares cercanos filtrando por categoria")
+    @DisplayName("Debe listar lugares cercanos normalizando la categoria a mayusculas")
     void debeListarLugaresCercanosFiltrandoPorCategoria() {
         double latUser = 40.4168;
         double lonUser = -3.7038;
         double radioMetros = 5000.0;
-        String categoria = "PARQUE";
 
-        when(lugarRepository.findNearbyWithCategory(latUser, lonUser, radioMetros, categoria))
+        when(lugarRepository.buscarCercanos(latUser, lonUser, radioMetros, "PARQUE", 200))
                 .thenReturn(List.of(lugarMock));
 
-        List<LugarResponse> result = lugarService.listarLugares(latUser, lonUser, radioMetros, categoria);
+        List<LugarResponse> result = lugarService.listarLugares(latUser, lonUser, radioMetros, " parque ");
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).categoria()).isEqualTo("PARQUE");
+    }
+
+    @Test
+    @DisplayName("Debe limitar el radio de busqueda a 50 km")
+    void debeLimitarRadioMaximo() {
+        when(lugarRepository.buscarCercanos(40.4168, -3.7038, 50_000.0, null, 200))
+                .thenReturn(List.of(lugarMock));
+
+        lugarService.listarLugares(40.4168, -3.7038, 100_000.0, null);
+
+        verify(lugarRepository).buscarCercanos(40.4168, -3.7038, 50_000.0, null, 200);
+    }
+
+    @Test
+    @DisplayName("Debe rechazar latitud sin longitud")
+    void debeRechazarCoordenadasIncompletas() {
+        assertThatThrownBy(() -> lugarService.listarLugares(40.0, null, null, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("lat y lon juntos");
+
+        verifyNoInteractions(lugarRepository);
+    }
+
+    @Test
+    @DisplayName("Debe rechazar coordenadas fuera de rango")
+    void debeRechazarCoordenadasFueraDeRango() {
+        assertThatThrownBy(() -> lugarService.listarLugares(95.0, -3.0, null, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("fuera de rango");
+
+        verifyNoInteractions(lugarRepository);
+    }
+
+    @Test
+    @DisplayName("Debe listar todos los lugares con un limite duro")
+    void debeListarTodosConLimite() {
+        when(lugarRepository.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(lugarMock)));
+
+        List<LugarResponse> result = lugarService.listarLugares(null, null, null, null);
+
+        assertThat(result).hasSize(1);
+        verify(lugarRepository).findAll(argThat((Pageable p) -> p.getPageSize() == 200));
     }
 
     @Test
@@ -225,6 +285,19 @@ class LugarServiceTest {
 
         lugarService.eliminarLugar(10L, 1L);
 
+        verify(lugarRepository).delete(lugarMock);
+    }
+
+    @Test
+    @DisplayName("Debe borrar los archivos de las fotos antes de eliminar el lugar")
+    void debeBorrarFotosAlEliminarLugar() {
+        when(lugarRepository.findById(10L)).thenReturn(Optional.of(lugarMock));
+        Foto foto = new Foto(1L, "/uploads/a.jpg", lugarMock, usuarioMock, Instant.now());
+        when(fotoRepository.findByLugarId(10L)).thenReturn(List.of(foto));
+
+        lugarService.eliminarLugar(10L, 1L);
+
+        verify(almacenamientoFotos).eliminar("/uploads/a.jpg");
         verify(lugarRepository).delete(lugarMock);
     }
 

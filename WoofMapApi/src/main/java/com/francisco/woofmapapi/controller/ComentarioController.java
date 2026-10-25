@@ -10,11 +10,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -59,9 +59,8 @@ public class ComentarioController {
             @Valid @RequestBody ComentarioRequest request,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        Long usuarioId = principal != null ? principal.getId() : null;
+        Long usuarioId = principal != null ? principal.id() : null;
         ComentarioResponse response = comentarioService.crearComentario(lugarId, request, usuarioId);
-        URI location = URI.create("/lugares/" + lugarId + "/comentarios/" + response.id());
-        return ResponseEntity.created(location).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

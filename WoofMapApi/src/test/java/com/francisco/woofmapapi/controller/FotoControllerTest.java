@@ -61,9 +61,16 @@ class FotoControllerTest {
 
         mockMvc.perform(multipart("/lugares/10/fotos").file(archivo))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "/lugares/10/fotos/1"))
                 .andExpect(jsonPath("$.url").value("/uploads/uuid.jpg"))
                 .andExpect(jsonPath("$.lugarId").value(10));
+    }
+
+    @Test
+    @DisplayName("POST /lugares/{id}/fotos sin archivo debe devolver 400")
+    void subirFoto_sinArchivo_devuelve400() throws Exception {
+        mockMvc.perform(multipart("/lugares/10/fotos"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
     }
 
     @Test

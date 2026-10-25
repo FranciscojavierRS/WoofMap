@@ -6,7 +6,8 @@
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Obligatorio: define POSTGRES_PASSWORD en .env
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD es obligatorio en .env}
     ports:
       # Solo accesible desde tu maquina (IDE, DBeaver, backend en local)
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
@@ -30,8 +31,9 @@
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET:-fase1_clave_temporal_segura_para_el_desarrollo_local_123456}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD es obligatorio en .env}
+      # Obligatorio: define JWT_SECRET en .env (openssl rand -base64 48)
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatorio en .env}
     ports:
       - "8080:8080"
     volumes:

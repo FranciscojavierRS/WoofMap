@@ -39,7 +39,7 @@ public class LugarController {
             @Valid @RequestBody LugarRequest request,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        Long usuarioId = (principal != null) ? principal.getId() : request.usuarioId();
+        Long usuarioId = (principal != null) ? principal.id() : null;
         LugarResponse response = lugarService.crearLugar(request, usuarioId);
         URI location = URI.create("/lugares/" + response.id());
         return ResponseEntity.created(location).body(response);
@@ -83,7 +83,7 @@ public class LugarController {
             @Valid @RequestBody LugarRequest request,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        Long usuarioId = (principal != null) ? principal.getId() : request.usuarioId();
+        Long usuarioId = (principal != null) ? principal.id() : null;
         return ResponseEntity.ok(lugarService.editarLugar(id, request, usuarioId));
     }
 
@@ -99,7 +99,7 @@ public class LugarController {
             @PathVariable Long id,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        Long usuarioId = (principal != null) ? principal.getId() : null;
+        Long usuarioId = (principal != null) ? principal.id() : null;
         lugarService.eliminarLugar(id, usuarioId);
         return ResponseEntity.noContent().build();
     }

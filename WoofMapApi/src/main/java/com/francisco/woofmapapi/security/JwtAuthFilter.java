@@ -1,6 +1,8 @@
 package com.francisco.woofmapapi.security;
 
 import com.francisco.woofmapapi.repository.UsuarioRepository;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,26 +45,28 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String jwt = authHeader.substring(7).trim();
         try {
-            String email = jwtService.extraerEmail(jwt);
+            Claims claims = jwtService.extraerClaims(jwt);
+            String email = claims.getSubject();
 
-            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                if (jwtService.esTokenValido(jwt, email)) {
-                    usuarioRepository.findByEmail(email).ifPresent(usuario -> {
-                        UserPrincipal principal = UserPrincipal.fromUsuario(usuario);
-                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                                principal,
-                                null,
-                                principal.getAuthorities()
-                        );
-                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContext context = SecurityContextHolder.createEmptyContext();
-                        context.setAuthentication(authToken);
-                        SecurityContextHolder.setContext(context);
-                    });
-                }
+            if (email != null
+                    && SecurityContextHolder.getContext().getAuthentication() == null
+                    && jwtService.esTokenValido(claims, email)) {
+                usuarioRepository.findByEmail(email).ifPresent(usuario -> {
+                    UserPrincipal principal = UserPrincipal.fromUsuario(usuario);
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            principal,
+                            null,
+                            principal.authorities()
+                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContext context = SecurityContextHolder.createEmptyContext();
+                    context.setAuthentication(authToken);
+                    SecurityContextHolder.setContext(context);
+                });
             }
-        } catch (Exception e) {
-            log.error("Error autenticando token JWT: {}", e.getMessage());
+        } catch (JwtException | IllegalArgumentException e) {
+            // Un token invalido no autentica, pero no ocultamos los fallos de la base de datos.
+            log.debug("Token JWT invalido: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);

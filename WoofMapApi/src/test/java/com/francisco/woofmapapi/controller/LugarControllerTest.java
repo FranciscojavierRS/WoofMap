@@ -50,19 +50,8 @@ class LugarControllerTest {
         objectMapper.registerModule(new JavaTimeModule());
     }
 
-    @Test
-    @DisplayName("POST /lugares con datos validos debe devolver 201 Created")
-    void debeCrearLugarYDevolver201() throws Exception {
-        LugarRequest request = new LugarRequest(
-                "Pipican Parque Central",
-                "Zona acotada con sombra",
-                "PIPICAN",
-                40.4168,
-                -3.7038,
-                1L
-        );
-
-        LugarResponse response = new LugarResponse(
+    private LugarResponse respuesta() {
+        return new LugarResponse(
                 1L,
                 "Pipican Parque Central",
                 "Zona acotada con sombra",
@@ -71,10 +60,24 @@ class LugarControllerTest {
                 -3.7038,
                 1L,
                 Instant.now(),
+                null,
+                null,
                 null
         );
+    }
 
-        when(lugarService.crearLugar(any(LugarRequest.class), any())).thenReturn(response);
+    @Test
+    @DisplayName("POST /lugares con datos validos debe devolver 201 Created")
+    void debeCrearLugarYDevolver201() throws Exception {
+        LugarRequest request = new LugarRequest(
+                "Pipican Parque Central",
+                "Zona acotada con sombra",
+                "PIPICAN",
+                40.4168,
+                -3.7038
+        );
+
+        when(lugarService.crearLugar(any(LugarRequest.class), any())).thenReturn(respuesta());
 
         mockMvc.perform(post("/lugares")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -96,8 +99,7 @@ class LugarControllerTest {
                 "Descripcion",
                 "", // categoria vacia
                 95.0, // latitud invalida (> 90)
-                -200.0, // longitud invalida (< -180)
-                null
+                -200.0 // longitud invalida (< -180)
         );
 
         mockMvc.perform(post("/lugares")
@@ -114,26 +116,32 @@ class LugarControllerTest {
     }
 
     @Test
+    @DisplayName("POST /lugares con JSON mal formado debe devolver 400")
+    void debeDevolver400ConJsonInvalido() throws Exception {
+        mockMvc.perform(post("/lugares")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{no-es-json"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("El cuerpo de la peticion no es JSON valido"));
+    }
+
+    @Test
     @DisplayName("GET /lugares/{id} existente debe devolver 200 OK")
     void debeDevolverLugarPorId() throws Exception {
-        LugarResponse response = new LugarResponse(
-                1L,
-                "Pipican Parque Central",
-                "Zona acotada con sombra",
-                "PIPICAN",
-                40.4168,
-                -3.7038,
-                1L,
-                Instant.now(),
-                null
-        );
-
-        when(lugarService.obtenerPorId(1L)).thenReturn(response);
+        when(lugarService.obtenerPorId(1L)).thenReturn(respuesta());
 
         mockMvc.perform(get("/lugares/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.nombre").value("Pipican Parque Central"));
+    }
+
+    @Test
+    @DisplayName("GET /lugares/{id} con id no numerico debe devolver 400")
+    void debeDevolver400ConIdNoNumerico() throws Exception {
+        mockMvc.perform(get("/lugares/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Parametro invalido: id"));
     }
 
     @Test
@@ -148,6 +156,14 @@ class LugarControllerTest {
     }
 
     @Test
+    @DisplayName("PATCH /lugares/{id} no soportado debe devolver 405")
+    void debeDevolver405ConMetodoNoSoportado() throws Exception {
+        mockMvc.perform(patch("/lugares/1"))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(jsonPath("$.status").value(405));
+    }
+
+    @Test
     @DisplayName("GET /lugares con parametros de proximidad debe devolver 200 y lista")
     void debeListarLugaresCercanos() throws Exception {
         LugarResponse resp = new LugarResponse(
@@ -159,7 +175,9 @@ class LugarControllerTest {
                 -3.7038,
                 1L,
                 Instant.now(),
-                250.5
+                250.5,
+                null,
+                null
         );
 
         when(lugarService.listarLugares(40.4168, -3.7038, 5000.0, "PIPICAN"))
@@ -183,8 +201,7 @@ class LugarControllerTest {
                 "Con mas obstaculos",
                 "PIPICAN",
                 40.4168,
-                -3.7038,
-                1L
+                -3.7038
         );
 
         LugarResponse updatedResponse = new LugarResponse(
@@ -196,6 +213,8 @@ class LugarControllerTest {
                 -3.7038,
                 1L,
                 Instant.now(),
+                null,
+                null,
                 null
         );
 
@@ -217,8 +236,7 @@ class LugarControllerTest {
                 "Con mas obstaculos",
                 "PIPICAN",
                 40.4168,
-                -3.7038,
-                1L
+                -3.7038
         );
 
         when(lugarService.editarLugar(eq(1L), any(LugarRequest.class), any()))

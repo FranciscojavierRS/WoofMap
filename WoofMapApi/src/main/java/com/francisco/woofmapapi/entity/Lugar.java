@@ -3,8 +3,6 @@ package com.francisco.woofmapapi.entity;
 import jakarta.persistence.*;
 import org.locationtech.jts.geom.Point;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -33,12 +31,6 @@ public class Lugar {
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private Instant fechaCreacion = Instant.now();
-
-    @OneToMany(mappedBy = "lugar", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Foto> fotos = new ArrayList<>();
-
-    @OneToMany(mappedBy = "lugar", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comentario> comentarios = new ArrayList<>();
 
     public Lugar() {
     }
@@ -107,22 +99,6 @@ public class Lugar {
 
     public void setFechaCreacion(Instant fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
-    }
-
-    public List<Foto> getFotos() {
-        return fotos;
-    }
-
-    public void setFotos(List<Foto> fotos) {
-        this.fotos = fotos;
-    }
-
-    public List<Comentario> getComentarios() {
-        return comentarios;
-    }
-
-    public void setComentarios(List<Comentario> comentarios) {
-        this.comentarios = comentarios;
     }
 
     @Override

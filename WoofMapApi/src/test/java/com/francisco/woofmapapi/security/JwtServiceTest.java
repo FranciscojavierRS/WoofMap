@@ -1,6 +1,8 @@
 package com.francisco.woofmapapi.security;
 
 import com.francisco.woofmapapi.entity.Usuario;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,50 +38,38 @@ class JwtServiceTest {
     @DisplayName("Debe extraer el email (subject) del token")
     void debeExtraerEmailDelToken() {
         String token = jwtService.generarToken(usuario);
-        String email = jwtService.extraerEmail(token);
+        Claims claims = jwtService.extraerClaims(token);
 
-        assertThat(email).isEqualTo("juan@woofmap.com");
-    }
-
-    @Test
-    @DisplayName("Debe extraer el ID de usuario del token")
-    void debeExtraerIdDelToken() {
-        String token = jwtService.generarToken(usuario);
-        Long id = jwtService.extraerUsuarioId(token);
-
-        assertThat(id).isEqualTo(1L);
+        assertThat(claims.getSubject()).isEqualTo("juan@woofmap.com");
     }
 
     @Test
     @DisplayName("Debe validar correctamente un token con el email correspondiente")
     void debeValidarTokenCorrectamente() {
         String token = jwtService.generarToken(usuario);
+        Claims claims = jwtService.extraerClaims(token);
 
-        boolean esValido = jwtService.esTokenValido(token, "juan@woofmap.com");
-
-        assertThat(esValido).isTrue();
+        assertThat(jwtService.esTokenValido(claims, "juan@woofmap.com")).isTrue();
     }
 
     @Test
     @DisplayName("Debe invalidar token si el email no coincide")
     void debeInvalidarTokenSiEmailNoCoincide() {
         String token = jwtService.generarToken(usuario);
+        Claims claims = jwtService.extraerClaims(token);
 
-        boolean esValido = jwtService.esTokenValido(token, "otro@woofmap.com");
-
-        assertThat(esValido).isFalse();
+        assertThat(jwtService.esTokenValido(claims, "otro@woofmap.com")).isFalse();
     }
 
     @Test
     @DisplayName("Debe rechazar token cuando ha expirado")
     void debeRechazarTokenExpirado() {
-        // Servicio con expiración de 0 ms (inmediatamente expirado)
+        // Servicio con expiracion de -1000 ms (inmediatamente expirado)
         JwtService shortLivedJwtService = new JwtService(secretKey, -1000);
         String token = shortLivedJwtService.generarToken(usuario);
 
-        boolean esValido = shortLivedJwtService.esTokenValido(token, "juan@woofmap.com");
-
-        assertThat(esValido).isFalse();
+        assertThatThrownBy(() -> shortLivedJwtService.extraerClaims(token))
+                .isInstanceOf(JwtException.class);
     }
 
     @Test
@@ -87,8 +77,23 @@ class JwtServiceTest {
     void debeRechazarTokenInvalido() {
         String tokenInvalido = "eyJhbGciOiJIUzI1NiJ9.invalido.firma";
 
-        boolean esValido = jwtService.esTokenValido(tokenInvalido, "juan@woofmap.com");
+        assertThatThrownBy(() -> jwtService.extraerClaims(tokenInvalido))
+                .isInstanceOf(JwtException.class);
+    }
 
-        assertThat(esValido).isFalse();
+    @Test
+    @DisplayName("Debe fallar al arrancar si falta el secreto")
+    void debeFallarSiFaltaElSecreto() {
+        assertThatThrownBy(() -> new JwtService("", expirationMs))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("JWT_SECRET");
+    }
+
+    @Test
+    @DisplayName("Debe fallar al arrancar si el secreto es demasiado corto")
+    void debeFallarSiElSecretoEsCorto() {
+        assertThatThrownBy(() -> new JwtService("corto", expirationMs))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("al menos 32 bytes");
     }
 }

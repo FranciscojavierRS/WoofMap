@@ -5,6 +5,7 @@ import com.francisco.woofmapapi.dto.LoginRequest;
 import com.francisco.woofmapapi.dto.RegisterRequest;
 import com.francisco.woofmapapi.entity.Usuario;
 import com.francisco.woofmapapi.exception.EmailAlreadyExistsException;
+import com.francisco.woofmapapi.exception.TooManyRequestsException;
 import com.francisco.woofmapapi.repository.UsuarioRepository;
 import com.francisco.woofmapapi.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,7 +62,7 @@ class AuthServiceTest {
 
         when(usuarioRepository.existsByEmail("carlos@woofmap.com")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("$2a$10$hashedPassword");
-        when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuarioMock);
+        when(usuarioRepository.saveAndFlush(any(Usuario.class))).thenReturn(usuarioMock);
         when(jwtService.generarToken(usuarioMock)).thenReturn("jwt.token.mock");
 
         AuthResponse response = authService.registrar(request);
@@ -73,7 +74,7 @@ class AuthServiceTest {
         assertThat(response.email()).isEqualTo("carlos@woofmap.com");
         assertThat(response.nombre()).isEqualTo("Carlos Gomez");
 
-        verify(usuarioRepository).save(any(Usuario.class));
+        verify(usuarioRepository).saveAndFlush(any(Usuario.class));
     }
 
     @Test
@@ -87,7 +88,7 @@ class AuthServiceTest {
                 .isInstanceOf(EmailAlreadyExistsException.class)
                 .hasMessageContaining("El email ya esta registrado");
 
-        verify(usuarioRepository, never()).save(any());
+        verify(usuarioRepository, never()).saveAndFlush(any());
     }
 
     @Test
@@ -134,5 +135,23 @@ class AuthServiceTest {
                 .hasMessageContaining("Credenciales invalidas");
 
         verify(jwtService, never()).generarToken(any());
+    }
+
+    @Test
+    @DisplayName("Debe bloquear el login tras 5 intentos fallidos seguidos")
+    void debeBloquearTrasCincoIntentosFallidos() {
+        LoginRequest request = new LoginRequest("carlos@woofmap.com", "passwordIncorrecta");
+
+        when(usuarioRepository.findByEmail("carlos@woofmap.com")).thenReturn(Optional.of(usuarioMock));
+        when(passwordEncoder.matches("passwordIncorrecta", usuarioMock.getPasswordHash())).thenReturn(false);
+
+        for (int i = 0; i < 5; i++) {
+            assertThatThrownBy(() -> authService.login(request))
+                    .isInstanceOf(BadCredentialsException.class);
+        }
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(TooManyRequestsException.class)
+                .hasMessageContaining("Demasiados intentos");
     }
 }

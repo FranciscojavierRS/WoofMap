@@ -7,7 +7,8 @@
 ## Desarrollo rápido
 ```bash
 # Copiar variables de entorno
-cp .env.example .env  # si existe, sino crear con valores
+cp .env.example .env
+# Edita .env y define POSTGRES_PASSWORD y JWT_SECRET (openssl rand -base64 48)
 
 # Levantar servicios
 docker compose up --build

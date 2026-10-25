@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.time.Instant;
@@ -25,6 +26,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -98,7 +100,8 @@ class ComentarioServiceTest {
         when(lugarRepository.existsById(10L)).thenReturn(true);
         Comentario c1 = new Comentario(1L, "Genial", (short) 5, lugar, usuario, Instant.now());
         Comentario c2 = new Comentario(2L, "Bien", (short) 3, lugar, usuario, Instant.now());
-        when(comentarioRepository.findByLugarIdOrderByFechaDesc(10L)).thenReturn(List.of(c1, c2));
+        when(comentarioRepository.findByLugarIdOrderByFechaDesc(eq(10L), any(Pageable.class)))
+                .thenReturn(List.of(c1, c2));
 
         List<ComentarioResponse> result = comentarioService.listarComentarios(10L);
 
@@ -113,27 +116,5 @@ class ComentarioServiceTest {
         when(lugarRepository.existsById(99L)).thenReturn(false);
         assertThatThrownBy(() -> comentarioService.listarComentarios(99L))
                 .isInstanceOf(ResourceNotFoundException.class);
-    }
-
-    @Test
-    @DisplayName("calcularMediaValoracion: devuelve la media si hay comentarios")
-    void calcularMediaValoracion_conComentarios_devuelveMedia() {
-        when(comentarioRepository.calcularMediaValoracion(10L)).thenReturn(Optional.of(4.2));
-        Double media = comentarioService.calcularMediaValoracion(10L);
-        assertThat(media).isEqualTo(4.2);
-    }
-
-    @Test
-    @DisplayName("calcularMediaValoracion: devuelve null si no hay comentarios")
-    void calcularMediaValoracion_sinComentarios_devuelveNull() {
-        when(comentarioRepository.calcularMediaValoracion(10L)).thenReturn(Optional.empty());
-        assertThat(comentarioService.calcularMediaValoracion(10L)).isNull();
-    }
-
-    @Test
-    @DisplayName("contarComentarios: devuelve el total correcto")
-    void contarComentarios_devuelveTotal() {
-        when(comentarioRepository.countByLugarId(10L)).thenReturn(5L);
-        assertThat(comentarioService.contarComentarios(10L)).isEqualTo(5L);
     }
 }

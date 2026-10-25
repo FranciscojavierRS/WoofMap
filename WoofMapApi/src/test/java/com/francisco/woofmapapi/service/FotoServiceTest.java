@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -26,6 +27,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -77,6 +79,22 @@ class FotoServiceTest {
     }
 
     @Test
+    @DisplayName("subirFoto: borra el archivo si falla el guardado en base de datos")
+    void subirFoto_falloBaseDatos_borraArchivo() {
+        MockMultipartFile archivo = new MockMultipartFile("foto", "perro.jpg", "image/jpeg", "img".getBytes());
+        when(lugarRepository.findById(10L)).thenReturn(Optional.of(lugarExistente));
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioExistente));
+        when(almacenamientoFotos.guardar(archivo)).thenReturn("/uploads/uuid.jpg");
+        when(fotoRepository.save(any(Foto.class))).thenThrow(new RuntimeException("fallo db"));
+
+        assertThatThrownBy(() -> fotoService.subirFoto(10L, archivo, 1L))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("fallo db");
+
+        verify(almacenamientoFotos).eliminar("/uploads/uuid.jpg");
+    }
+
+    @Test
     @DisplayName("subirFoto: lanza AccessDeniedException si no hay usuarioId")
     void subirFoto_sinUsuarioId_lanzaAccessDeniedException() {
         MockMultipartFile archivo = new MockMultipartFile("foto", "p.jpg", "image/jpeg", "x".getBytes());
@@ -102,7 +120,8 @@ class FotoServiceTest {
         when(lugarRepository.existsById(10L)).thenReturn(true);
         Foto f1 = new Foto(1L, "/uploads/a.jpg", lugarExistente, usuarioExistente, Instant.now());
         Foto f2 = new Foto(2L, "/uploads/b.jpg", lugarExistente, usuarioExistente, Instant.now());
-        when(fotoRepository.findByLugarIdOrderByFechaSubidaDesc(10L)).thenReturn(List.of(f1, f2));
+        when(fotoRepository.findByLugarIdOrderByFechaSubidaDesc(eq(10L), any(Pageable.class)))
+                .thenReturn(List.of(f1, f2));
 
         List<FotoResponse> result = fotoService.listarFotosDeLugar(10L);
 

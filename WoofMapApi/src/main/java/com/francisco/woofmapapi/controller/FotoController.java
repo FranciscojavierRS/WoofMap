@@ -8,13 +8,13 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -44,10 +44,9 @@ public class FotoController {
             @Parameter(description = "Archivo de imagen") @RequestParam("foto") MultipartFile foto,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        Long usuarioId = principal != null ? principal.getId() : null;
+        Long usuarioId = principal != null ? principal.id() : null;
         FotoResponse response = fotoService.subirFoto(lugarId, foto, usuarioId);
-        URI location = URI.create("/lugares/" + lugarId + "/fotos/" + response.id());
-        return ResponseEntity.created(location).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping

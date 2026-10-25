@@ -61,7 +61,6 @@ class ComentarioControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "/lugares/10/comentarios/1"))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.texto").value("Muy buen lugar para perros"))
                 .andExpect(jsonPath("$.valoracion").value(5));

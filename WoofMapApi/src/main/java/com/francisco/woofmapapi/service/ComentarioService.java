@@ -9,6 +9,7 @@ import com.francisco.woofmapapi.exception.ResourceNotFoundException;
 import com.francisco.woofmapapi.repository.ComentarioRepository;
 import com.francisco.woofmapapi.repository.LugarRepository;
 import com.francisco.woofmapapi.repository.UsuarioRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,8 @@ import java.util.List;
 @Service
 @Transactional
 public class ComentarioService {
+
+    private static final int LIMITE_LISTADO = 200;
 
     private final ComentarioRepository comentarioRepository;
     private final LugarRepository lugarRepository;
@@ -37,7 +40,7 @@ public class ComentarioService {
         if (!lugarRepository.existsById(lugarId)) {
             throw new ResourceNotFoundException("Lugar no encontrado con id: " + lugarId);
         }
-        return comentarioRepository.findByLugarIdOrderByFechaDesc(lugarId)
+        return comentarioRepository.findByLugarIdOrderByFechaDesc(lugarId, PageRequest.of(0, LIMITE_LISTADO))
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -65,16 +68,6 @@ public class ComentarioService {
 
         Comentario guardado = comentarioRepository.save(comentario);
         return toResponse(guardado);
-    }
-
-    @Transactional(readOnly = true)
-    public Double calcularMediaValoracion(Long lugarId) {
-        return comentarioRepository.calcularMediaValoracion(lugarId).orElse(null);
-    }
-
-    @Transactional(readOnly = true)
-    public long contarComentarios(Long lugarId) {
-        return comentarioRepository.countByLugarId(lugarId);
     }
 
     private ComentarioResponse toResponse(Comentario c) {

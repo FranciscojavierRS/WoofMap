@@ -32,7 +32,10 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = {LugarController.class, AuthController.class})
+@WebMvcTest(
+        controllers = {LugarController.class, AuthController.class},
+        properties = "jwt.secret=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970"
+)
 @Import({SecurityConfig.class, JwtService.class})
 class SecurityIntegrationTest {
 
@@ -108,7 +111,7 @@ class SecurityIntegrationTest {
     @DisplayName("POST /lugares con token valido debe asociar creador y devolver 201 Created")
     void postLugaresConTokenValidoDebeDevolver201() throws Exception {
         LugarRequest request = new LugarRequest("Parque Central", "Parque vallado", "PARQUE", 40.4168, -3.7038);
-        LugarResponse response = new LugarResponse(10L, "Parque Central", "Parque vallado", "PARQUE", 40.4168, -3.7038, 1L, Instant.now());
+        LugarResponse response = new LugarResponse(10L, "Parque Central", "Parque vallado", "PARQUE", 40.4168, -3.7038, 1L, Instant.now(), null, null, null);
 
         when(lugarService.crearLugar(any(LugarRequest.class), eq(1L))).thenReturn(response);
 
@@ -125,7 +128,7 @@ class SecurityIntegrationTest {
     @DisplayName("PUT /lugares/{id} con token del creador debe permitir editar (200 OK)")
     void putLugaresConTokenCreadorDebeDevolver200() throws Exception {
         LugarRequest request = new LugarRequest("Parque Editado", "Nueva desc", "PARQUE", 40.4168, -3.7038);
-        LugarResponse response = new LugarResponse(10L, "Parque Editado", "Nueva desc", "PARQUE", 40.4168, -3.7038, 1L, Instant.now());
+        LugarResponse response = new LugarResponse(10L, "Parque Editado", "Nueva desc", "PARQUE", 40.4168, -3.7038, 1L, Instant.now(), null, null, null);
 
         when(lugarService.editarLugar(eq(10L), any(LugarRequest.class), eq(1L))).thenReturn(response);
 

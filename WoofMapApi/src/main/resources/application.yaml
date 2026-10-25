@@ -9,7 +9,8 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/woofmap}
     username: ${SPRING_DATASOURCE_USERNAME:woofmap}
-    password: ${SPRING_DATASOURCE_PASSWORD:Max}
+    # Obligatorio: define SPRING_DATASOURCE_PASSWORD en .env o en el entorno
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -45,3 +46,8 @@ server:
 woofmap:
   uploads:
     dir: ${UPLOADS_DIR:uploads}
+
+jwt:
+  # Obligatorio: genera un secreto con: openssl rand -base64 48
+  secret: ${JWT_SECRET:}
+  expiration-ms: ${JWT_EXPIRATION_MS:86400000}

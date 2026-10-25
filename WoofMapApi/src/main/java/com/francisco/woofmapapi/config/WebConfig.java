@@ -16,6 +16,10 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         String absolutePath = Paths.get(uploadsDir).toAbsolutePath().normalize().toUri().toString();
+        // Spring necesita la barra final para tratar la ruta como un directorio.
+        if (!absolutePath.endsWith("/")) {
+            absolutePath += "/";
+        }
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations(absolutePath);
     }
