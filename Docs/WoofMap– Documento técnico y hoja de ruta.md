@@ -91,7 +91,7 @@ Para demostraciones fuera de la red local se utilizará un túnel (Cloudflare Tu
 | Lenguaje | Java | Conocimiento previo del ciclo formativo. |
 | IDE | Android Studio | Herramienta oficial. |
 | Arquitectura | MVVM (ViewModel + LiveData) | Separación de responsabilidades y recomendada por Google. |
-| Mapa | MapLibre / OSMDroid o Google Maps SDK | Las alternativas abiertas no requieren cuenta de facturación. |
+| Mapa | MapLibre + estilo OpenFreeMap | Mapas vectoriales sin cuenta ni API key; el estilo Liberty se sirve desde `tiles.openfreemap.org`. |
 | Red | Retrofit + OkHttp + Gson/Moshi | Estándar para consumo de APIs REST. |
 | Imágenes | Glide | Carga y caché eficiente de imágenes. |
 | Cámara/galería | Photo Picker + CameraX | APIs modernas de Android. |
@@ -193,16 +193,17 @@ El backend se desarrolla con TDD y debe cumplir SOLID y KISS; el detalle de las 
 | --- | --- | --- | --- |
 | POST | /auth/register | Registro de usuario | No |
 | POST | /auth/login | Inicio de sesión | No |
-| GET | /lugares?lat=&lon=&radio= | Lugares cercanos | No |
+| GET | /lugares?lat=&lon=&radio=&categoria= | Lugares cercanos, con filtro opcional por categoría | No |
 | GET | /lugares/{id} | Detalle de un lugar | No |
 | POST | /lugares | Crear lugar | Sí |
 | PUT | /lugares/{id} | Editar lugar (solo creador) | Sí |
 | DELETE | /lugares/{id} | Eliminar lugar (solo creador) | Sí |
 | POST | /lugares/{id}/fotos | Subir foto (multipart) | Sí |
+| GET | /lugares/{id}/fotos | Listar fotos de un lugar | No |
 | GET | /lugares/{id}/comentarios | Listar comentarios | No |
 | POST | /lugares/{id}/comentarios | Comentar y valorar | Sí |
 
-La API devuelve DTOs (nunca entidades directamente) y utiliza códigos HTTP estándar (200, 201, 400, 401, 403, 404, 409).
+La API devuelve DTOs (nunca entidades directamente) y utiliza códigos HTTP estándar (200, 201, 204, 400, 401, 403, 404, 405, 409 y 429).
 
 ## 7. Seguridad
 
@@ -222,8 +223,8 @@ WoofMap/
 ├── .env                (no versionado)
 ├── .gitignore
 ├── README.md
-├── docs/               (memoria, diagramas, capturas)
-├── backend/            (Spring Boot + Dockerfile)
+├── Docs/               (memoria, diagramas, capturas)
+├── WoofMapApi/         (Spring Boot + Dockerfile)
 └── android/            (proyecto Android Studio)
 ```
 
@@ -302,26 +303,26 @@ La planificación se divide en fases con tareas verificables. Cada fase termina 
 
 *Entregable: API completa.*
 
-- [ ] Configurar el volumen `uploads` y el servicio de almacenamiento de ficheros.
-- [ ] Implementar `POST /lugares/{id}/fotos` (multipart) con validación de tipo y tamaño.
-- [ ] Servir las imágenes de forma pública desde `/uploads/**`.
-- [ ] Implementar los endpoints de comentarios y valoración.
-- [ ] Calcular la valoración media de cada lugar.
-- [ ] Ampliar la colección de Postman y los tests de integración.
+- [X] Configurar el volumen `uploads` y el servicio de almacenamiento de ficheros.
+- [X] Implementar `POST /lugares/{id}/fotos` (multipart) con validación de tipo y tamaño.
+- [X] Servir las imágenes de forma pública desde `/uploads/**`.
+- [X] Implementar los endpoints de comentarios y valoración.
+- [X] Calcular la valoración media de cada lugar.
+- [X] Ampliar la colección de Postman y los tests de integración.
 
 ### Fase 4 · Android: base, autenticación y mapa
 
 *Entregable: app que permite iniciar sesión y ver lugares en el mapa.*
 
-- [ ] Crear el proyecto Android (Java, minSdk adecuado) con estructura MVVM.
-- [ ] Configurar Retrofit, OkHttp y el `AuthInterceptor`.
-- [ ] Configurar `network_security_config.xml` para desarrollo (host `10.0.2.2` o IP local).
-- [ ] Implementar `TokenStore` con EncryptedSharedPreferences.
-- [ ] Pantallas de Login y Registro con validación en cliente.
-- [ ] Lógica de arranque: si hay token válido, ir directamente al mapa.
-- [ ] Integrar el mapa y solicitar el permiso de ubicación.
-- [ ] Centrar el mapa en la posición del usuario y cargar lugares cercanos desde la API.
-- [ ] Gestionar el 401 (token caducado) redirigiendo al login.
+- [X] Crear el proyecto Android (Java, minSdk adecuado) con estructura MVVM.
+- [X] Configurar Retrofit, OkHttp y el `AuthInterceptor`.
+- [X] Configurar `network_security_config.xml` para desarrollo (host `10.0.2.2` o IP local).
+- [X] Implementar `TokenStore` con EncryptedSharedPreferences.
+- [X] Pantallas de Login y Registro con validación en cliente.
+- [X] Lógica de arranque: si hay token válido, ir directamente al mapa.
+- [X] Integrar el mapa y solicitar el permiso de ubicación.
+- [X] Centrar el mapa en la posición del usuario y cargar lugares cercanos desde la API.
+- [X] Gestionar el 401 (token caducado) redirigiendo al login.
 
 ### Fase 5 · Android: crear lugares, fotos y comentarios
 
