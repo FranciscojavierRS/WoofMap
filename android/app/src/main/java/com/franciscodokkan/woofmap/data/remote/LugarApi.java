@@ -1,11 +1,17 @@
 package com.franciscodokkan.woofmap.data.remote;
 
+import com.franciscodokkan.woofmap.data.remote.model.LugarRequest;
 import com.franciscodokkan.woofmap.data.remote.model.LugarResponse;
 
 import java.util.List;
 
 import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.POST;
+import retrofit2.http.PUT;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface LugarApi {
@@ -14,5 +20,17 @@ public interface LugarApi {
     Call<List<LugarResponse>> listar(
             @Query("lat") Double lat,
             @Query("lon") Double lon,
-            @Query("radio") Double radio);
+            @Query("radio") Double radio,
+            @Query("categoria") String categoria);
+
+    @POST("lugares")
+    Call<LugarResponse> crear(@Body LugarRequest request);
+
+    @PUT("lugares/{id}")
+    Call<LugarResponse> editar(
+            @Path("id") long id,
+            @Body LugarRequest request);
+
+    @DELETE("lugares/{id}")
+    Call<Void> eliminar(@Path("id") long id);
 }

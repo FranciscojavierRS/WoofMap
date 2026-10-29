@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="categorias_lugar">
+        <item>Parque</item>
+        <item>Playa</item>
+        <item>Zona de juegos</item>
+        <item>Veterinario</item>
+        <item>Peluquería canina</item>
+        <item>Tienda de mascotas</item>
+        <item>Restaurante dog-friendly</item>
+        <item>Hotel dog-friendly</item>
+        <item>Fuente de agua</item>
+        <item>Otro</item>
+    </string-array>
+</resources>

@@ -43,7 +43,7 @@ public class AuthRepository {
     private ApiResult<AuthResponse> procesar(Response<AuthResponse> respuesta) {
         if (respuesta.isSuccessful() && respuesta.body() != null) {
             AuthResponse sesion = respuesta.body();
-            tokenStore.guardarSesion(sesion.token, sesion.nombre, sesion.email);
+            tokenStore.guardarSesion(sesion.token, sesion.usuarioId, sesion.nombre, sesion.email);
             return ApiResult.exito(sesion);
         }
         return ApiResult.error(respuesta.code(), RespuestaError.mensaje(respuesta));

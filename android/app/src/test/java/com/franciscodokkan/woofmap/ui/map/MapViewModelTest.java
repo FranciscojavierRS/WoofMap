@@ -38,7 +38,7 @@ public class MapViewModelTest {
     public void cargarLugaresExponeLaListaRecibida() {
         List<LugarResponse> lugares = Collections.singletonList(
                 new LugarResponse(1L, "Parque Central", "PARQUE", 40.4, -3.7));
-        when(repositorio.listar(40.4, -3.7)).thenReturn(ApiResult.exito(lugares));
+        when(repositorio.listar(40.4, -3.7, null)).thenReturn(ApiResult.exito(lugares));
 
         viewModel.cargarLugares(40.4, -3.7);
 
@@ -48,7 +48,7 @@ public class MapViewModelTest {
 
     @Test
     public void cargarLugaresSinUbicacionConsultaTodos() {
-        when(repositorio.listar(null, null))
+        when(repositorio.listar(null, null, null))
                 .thenReturn(ApiResult.exito(Collections.emptyList()));
 
         viewModel.cargarLugares(null, null);
@@ -58,7 +58,7 @@ public class MapViewModelTest {
 
     @Test
     public void un401MarcaLaSesionComoExpirada() {
-        when(repositorio.listar(40.4, -3.7))
+        when(repositorio.listar(40.4, -3.7, null))
                 .thenReturn(ApiResult.error(401, "No autorizado"));
 
         viewModel.cargarLugares(40.4, -3.7);
@@ -68,7 +68,7 @@ public class MapViewModelTest {
 
     @Test
     public void unErrorDelServidorExponeElMensaje() {
-        when(repositorio.listar(40.4, -3.7))
+        when(repositorio.listar(40.4, -3.7, null))
                 .thenReturn(ApiResult.error(500, "Error interno"));
 
         viewModel.cargarLugares(40.4, -3.7);

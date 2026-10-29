@@ -17,8 +17,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // 10.0.2.2 es el host desde el emulador. En un dispositivo físico hay que
-        // poner aquí la IP local del equipo y añadirla a network_security_config.xml.
+        // 10.0.2.2 es el host desde el emulador. En un dispositivo fisico hay que
+        // poner aqui la IP local del equipo y anadirla a network_security_config.xml.
         buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")
     }
 
@@ -44,6 +44,8 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.maplibre)
     implementation(libs.play.services.location)
+    implementation(libs.glide)
+    implementation(libs.androidx.recyclerview)
 
     testImplementation(libs.junit)
     testImplementation(libs.androidx.core.testing)

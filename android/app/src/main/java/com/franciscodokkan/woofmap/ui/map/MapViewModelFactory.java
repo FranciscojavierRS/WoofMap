@@ -16,11 +16,7 @@ public class MapViewModelFactory implements ViewModelProvider.Factory {
 
     @NonNull
     @Override
-    @SuppressWarnings("unchecked")
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-        if (modelClass.isAssignableFrom(MapViewModel.class)) {
-            return (T) new MapViewModel(repositorio);
-        }
-        throw new IllegalArgumentException("ViewModel desconocido: " + modelClass.getName());
+        return (T) new MapViewModel(repositorio);
     }
 }

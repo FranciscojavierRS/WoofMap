@@ -9,6 +9,8 @@ okhttp = "4.12.1"
 gson = "2.13.2"
 maplibre = "13.7.1"
 playServicesLocation = "21.4.0"
+glide = "4.16.0"
+recyclerview = "1.4.0"
 junit = "4.13.2"
 coreTesting = "2.2.0"
 mockito = "5.24.0"
@@ -25,6 +27,8 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 maplibre = { group = "org.maplibre.gl", name = "android-sdk", version.ref = "maplibre" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
+androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "coreTesting" }
 mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }

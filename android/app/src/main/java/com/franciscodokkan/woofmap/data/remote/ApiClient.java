@@ -24,6 +24,14 @@ public final class ApiClient {
         return get(contexto).create(LugarApi.class);
     }
 
+    public static FotoApi fotos(Context contexto) {
+        return get(contexto).create(FotoApi.class);
+    }
+
+    public static ComentarioApi comentarios(Context contexto) {
+        return get(contexto).create(ComentarioApi.class);
+    }
+
     private static synchronized Retrofit get(Context contexto) {
         if (retrofit == null) {
             OkHttpClient cliente = new OkHttpClient.Builder()

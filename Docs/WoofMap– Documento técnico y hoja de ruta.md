@@ -328,14 +328,14 @@ La planificación se divide en fases con tareas verificables. Cada fase termina 
 
 *Entregable: funcionalidad completa del MVP.*
 
-- [ ] Pantalla de creación de lugar: marcar punto en el mapa, nombre, descripción y categoría.
-- [ ] Pantalla de detalle del lugar (información, fotos, valoración media).
-- [ ] Selección de fotos con Photo Picker o captura con CameraX.
-- [ ] Subida de fotos (multipart) con indicador de progreso.
-- [ ] Galería de fotos en el detalle con Glide.
-- [ ] Listado y creación de comentarios con valoración.
-- [ ] Edición y borrado de los lugares propios.
-- [ ] Filtro por categoría en el mapa.
+- [X] Pantalla de creación de lugar: marcar punto en el mapa, nombre, descripción y categoría.
+- [X] Pantalla de detalle del lugar (información, fotos, valoración media).
+- [X] Selección de fotos con Photo Picker o captura con CameraX.
+- [X] Subida de fotos (multipart) con indicador de progreso.
+- [X] Galería de fotos en el detalle con Glide.
+- [X] Listado y creación de comentarios con valoración.
+- [X] Edición y borrado de los lugares propios.
+- [X] Filtro por categoría en el mapa.
 
 ### Fase 6 · Pulido, pruebas y despliegue
 

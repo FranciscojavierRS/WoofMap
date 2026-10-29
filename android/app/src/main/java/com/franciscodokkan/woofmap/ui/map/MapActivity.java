@@ -6,8 +6,11 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -21,6 +24,8 @@ import com.franciscodokkan.woofmap.data.remote.model.LugarResponse;
 import com.franciscodokkan.woofmap.data.repository.LugarRepository;
 import com.franciscodokkan.woofmap.databinding.ActivityMapBinding;
 import com.franciscodokkan.woofmap.ui.auth.LoginActivity;
+import com.franciscodokkan.woofmap.ui.lugar.CreateLugarActivity;
+import com.franciscodokkan.woofmap.ui.lugar.LugarDetailActivity;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
@@ -32,6 +37,7 @@ import org.maplibre.android.maps.MapLibreMap;
 import org.maplibre.android.maps.MapView;
 import org.maplibre.android.maps.Style;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -50,6 +56,20 @@ public class MapActivity extends AppCompatActivity {
     private boolean estiloCargado;
     private List<LugarResponse> lugares = Collections.emptyList();
 
+    private final ActivityResultLauncher<Intent> createLugarLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    viewModel.recargar();
+                }
+            });
+
+    private final ActivityResultLauncher<Intent> lugarDetailLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    viewModel.recargar();
+                }
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,9 +87,38 @@ public class MapActivity extends AppCompatActivity {
                 .get(MapViewModel.class);
 
         observarViewModel();
+        configurarFiltroCategoria();
         binding.botonSalir.setOnClickListener(v -> cerrarSesion());
+        binding.fabCrearLugar.setOnClickListener(v -> abrirCrearLugar());
+
         configurarMapa();
         pedirUbicacion();
+    }
+
+    private void configurarFiltroCategoria() {
+        String[] categoriasArray = getResources().getStringArray(R.array.categorias_lugar);
+        List<String> opciones = new ArrayList<>();
+        opciones.add(getString(R.string.mapa_filtro_todos));
+        Collections.addAll(opciones, categoriasArray);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_dropdown_item_1line, opciones);
+        binding.spinnerFiltroCategoria.setAdapter(adapter);
+        binding.spinnerFiltroCategoria.setText(getString(R.string.mapa_filtro_todos), false);
+
+        binding.spinnerFiltroCategoria.setOnItemClickListener((parent, view, position, id) -> {
+            String seleccion = opciones.get(position);
+            if (getString(R.string.mapa_filtro_todos).equalsIgnoreCase(seleccion)) {
+                viewModel.setCategoria(null);
+            } else {
+                viewModel.setCategoria(seleccion);
+            }
+        });
+    }
+
+    private void abrirCrearLugar() {
+        Intent intent = new Intent(this, CreateLugarActivity.class);
+        createLugarLauncher.launch(intent);
     }
 
     private void configurarMapa() {
@@ -81,7 +130,37 @@ public class MapActivity extends AppCompatActivity {
                 estiloCargado = true;
                 pintarLugares();
             });
+
+            mapa.setOnMarkerClickListener(marker -> {
+                LugarResponse seleccionado = null;
+                for (LugarResponse l : lugares) {
+                    if (l.nombre != null && l.nombre.equals(marker.getTitle())
+                            && l.lat != null && Math.abs(l.lat - marker.getPosition().getLatitude()) < 0.0001
+                            && l.lon != null && Math.abs(l.lon - marker.getPosition().getLongitude()) < 0.0001) {
+                        seleccionado = l;
+                        break;
+                    }
+                }
+                if (seleccionado != null) {
+                    abrirDetalleLugar(seleccionado);
+                }
+                return true;
+            });
         });
+    }
+
+    private void abrirDetalleLugar(LugarResponse lugar) {
+        Intent intent = new Intent(this, LugarDetailActivity.class);
+        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_ID, lugar.id != null ? lugar.id : -1L);
+        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_NOMBRE, lugar.nombre);
+        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_DESCRIPCION, lugar.descripcion);
+        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_CATEGORIA, lugar.categoria);
+        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_LAT, lugar.lat != null ? lugar.lat : 0.0);
+        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_LON, lugar.lon != null ? lugar.lon : 0.0);
+        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_USUARIO_ID, lugar.usuarioId != null ? lugar.usuarioId : -1L);
+        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_VALORACION, lugar.valoracionMedia != null ? lugar.valoracionMedia : 0.0);
+        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_COMENTARIOS, lugar.totalComentarios != null ? lugar.totalComentarios : 0L);
+        lugarDetailLauncher.launch(intent);
     }
 
     private void observarViewModel() {
@@ -117,7 +196,8 @@ public class MapActivity extends AppCompatActivity {
             }
             mapa.addMarker(new MarkerOptions()
                     .position(new LatLng(lugar.lat, lugar.lon))
-                    .title(lugar.nombre));
+                    .title(lugar.nombre)
+                    .snippet(lugar.categoria));
         }
         binding.textoVacio.setVisibility(
                 lugares.isEmpty() && !Boolean.TRUE.equals(viewModel.getCargando().getValue())
