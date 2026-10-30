@@ -4,8 +4,11 @@ import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.util.ClassUtils;
 
 import javax.sql.DataSource;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(properties = {
         "spring.jpa.hibernate.ddl-auto=none",
@@ -22,6 +25,14 @@ class WoofMapApiApplicationTests {
 
     @Test
     void contextLoads() {
+    }
+
+    @Test
+    void elModuloDeAutoConfiguracionDeFlywayEstaEnElClasspath() {
+        // Spring Boot 4 separa las auto-configuraciones: sin spring-boot-flyway no se crea el esquema.
+        assertThat(ClassUtils.isPresent(
+                "org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration",
+                getClass().getClassLoader())).isTrue();
     }
 
 }

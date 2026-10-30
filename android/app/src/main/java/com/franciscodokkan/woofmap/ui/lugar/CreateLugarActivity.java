@@ -1,12 +1,16 @@
 package com.franciscodokkan.woofmap.ui.lugar;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.franciscodokkan.woofmap.R;
@@ -14,8 +18,11 @@ import com.franciscodokkan.woofmap.data.local.TokenStore;
 import com.franciscodokkan.woofmap.data.remote.ApiClient;
 import com.franciscodokkan.woofmap.data.repository.LugarRepository;
 import com.franciscodokkan.woofmap.databinding.ActivityCreateLugarBinding;
+import com.franciscodokkan.woofmap.ui.MapaEstilo;
 import com.franciscodokkan.woofmap.ui.SimpleViewModelFactory;
 import com.franciscodokkan.woofmap.ui.auth.LoginActivity;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 
 import org.maplibre.android.MapLibre;
 import org.maplibre.android.camera.CameraUpdateFactory;
@@ -26,8 +33,6 @@ import org.maplibre.android.maps.Style;
 
 public class CreateLugarActivity extends AppCompatActivity {
 
-    public static final String RESULTADO_CREADO = "lugar_creado";
-    private static final String ESTILO_MAPA = "https://tiles.openfreemap.org/styles/liberty";
     private static final String ESTADO_PUNTO_LAT = "punto_lat";
     private static final String ESTADO_PUNTO_LON = "punto_lon";
 
@@ -36,6 +41,7 @@ public class CreateLugarActivity extends AppCompatActivity {
     private MapLibreMap mapa;
     private LatLng puntoSeleccionado;
     private boolean estiloCargado = false;
+    private FusedLocationProviderClient clienteUbicacion;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,11 +49,7 @@ public class CreateLugarActivity extends AppCompatActivity {
         MapLibre.getInstance(this);
         binding = ActivityCreateLugarBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle(R.string.crear_lugar_titulo);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
+        clienteUbicacion = LocationServices.getFusedLocationProviderClient(this);
 
         LugarRepository repo = new LugarRepository(ApiClient.lugares(this));
         viewModel = new ViewModelProvider(this, new SimpleViewModelFactory<>(() -> new CreateLugarViewModel(repo)))
@@ -78,17 +80,39 @@ public class CreateLugarActivity extends AppCompatActivity {
         mapaView.getMapAsync(map -> {
             mapa = map;
             mapa.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(40.4168, -3.7038), 11));
-            mapa.setStyle(new Style.Builder().fromUri(ESTILO_MAPA), style -> {
+            mapa.setStyle(new Style.Builder().fromUri(MapaEstilo.URL), style -> {
                 estiloCargado = true;
                 // Restore marker if coming back from rotation
                 if (puntoSeleccionado != null) {
                     seleccionarPunto(puntoSeleccionado);
                 }
             });
+            if (puntoSeleccionado != null) {
+                mapa.moveCamera(CameraUpdateFactory.newLatLngZoom(puntoSeleccionado, 16));
+            } else {
+                centrarEnUbicacion();
+            }
             mapa.addOnMapClickListener(punto -> {
                 seleccionarPunto(punto);
                 return true;
             });
+        });
+    }
+
+    @SuppressLint("MissingPermission")
+    private void centrarEnUbicacion() {
+        boolean permiso = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        if (!permiso) {
+            return;
+        }
+        clienteUbicacion.getLastLocation().addOnSuccessListener(this, ubicacion -> {
+            if (ubicacion != null && mapa != null && puntoSeleccionado == null) {
+                mapa.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                        new LatLng(ubicacion.getLatitude(), ubicacion.getLongitude()), 16));
+            }
         });
     }
 
@@ -134,7 +158,7 @@ public class CreateLugarActivity extends AppCompatActivity {
         });
         viewModel.getLugarCreado().observe(this, lugar -> {
             if (lugar != null) {
-                setResult(RESULT_OK, new Intent().putExtra(RESULTADO_CREADO, true));
+                setResult(RESULT_OK);
                 finish();
             }
         });

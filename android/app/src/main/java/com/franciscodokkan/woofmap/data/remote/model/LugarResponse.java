@@ -9,6 +9,7 @@ public class LugarResponse {
     public Double lat;
     public Double lon;
     public Long usuarioId;
+    public String usuarioNombre;
     public String fechaCreacion;
     public Double distanciaMetros;
     public Double valoracionMedia;

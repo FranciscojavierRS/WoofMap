@@ -24,12 +24,13 @@
 
     <!-- Map -->
     <string name="mapa_cerrar_sesion">Salir</string>
+    <string name="mapa_perfil">Perfil</string>
+    <string name="mapa_perfil_no_disponible">El perfil todavía no está disponible</string>
     <string name="mapa_sin_lugares">No hay lugares cerca todavía</string>
     <string name="mapa_permiso_denegado">Sin permiso de ubicación: mostrando Madrid</string>
     <string name="mapa_error_ubicacion">No se pudo obtener tu ubicación</string>
     <string name="mapa_sesion_expirada">Tu sesión ha caducado. Vuelve a iniciar sesión.</string>
     <string name="mapa_anadir_lugar">Añadir lugar</string>
-    <string name="mapa_filtrar">Filtrar</string>
     <string name="mapa_filtro_todos">Todos</string>
 
     <!-- Crear lugar -->
@@ -43,18 +44,35 @@
     <string name="crear_lugar_boton">Crear lugar</string>
 
     <!-- Detalle de lugar -->
-    <string name="detalle_titulo">Detalle del lugar</string>
+    <string name="detalle_volver">‹ Volver</string>
     <string name="detalle_sin_descripcion">Sin descripción</string>
-    <string name="detalle_valoracion">⭐ %.1f (%d valoraciones)</string>
-    <string name="detalle_sin_valoracion">Sin valoraciones aún</string>
-    <string name="detalle_fotos_titulo">Fotos</string>
+    <string name="detalle_por_autor">Por %s</string>
+    <string name="detalle_meta">%1$s · %2$s</string>
+    <string name="detalle_sin_valoraciones">Aún sin valoraciones</string>
+    <string name="detalle_valorar">Valorar este lugar</string>
+    <string name="detalle_descripcion">Descripción</string>
     <string name="detalle_sin_fotos">Aún no hay fotos</string>
-    <string name="detalle_anadir_foto">+ Añadir foto</string>
+    <string name="detalle_anadir_fotos">Añadir fotos (%1$d/%2$d)</string>
     <string name="detalle_comentarios_titulo">Comentarios</string>
     <string name="detalle_sin_comentarios">Aún no hay comentarios</string>
-    <string name="detalle_anadir_comentario">+ Añadir comentario</string>
+    <string name="detalle_anadir_comentario">Añadir comentario</string>
     <string name="detalle_editar">Editar</string>
     <string name="detalle_eliminar">Eliminar</string>
+
+    <plurals name="detalle_valoraciones">
+        <item quantity="one">%1$.1f · %2$d reseña</item>
+        <item quantity="other">%1$.1f · %2$d reseñas</item>
+    </plurals>
+
+    <plurals name="detalle_valoraciones_sin_media">
+        <item quantity="one">Aún sin valoraciones · %d reseña</item>
+        <item quantity="other">Aún sin valoraciones · %d reseñas</item>
+    </plurals>
+
+    <plurals name="detalle_num_fotos">
+        <item quantity="one">%d foto</item>
+        <item quantity="other">%d fotos</item>
+    </plurals>
 
     <!-- Editar lugar -->
     <string name="editar_lugar_titulo">Editar lugar</string>

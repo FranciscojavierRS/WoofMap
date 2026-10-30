@@ -5,8 +5,9 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.View;
-import android.widget.ArrayAdapter;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -23,10 +24,11 @@ import com.franciscodokkan.woofmap.data.remote.ApiClient;
 import com.franciscodokkan.woofmap.data.remote.model.LugarResponse;
 import com.franciscodokkan.woofmap.data.repository.LugarRepository;
 import com.franciscodokkan.woofmap.databinding.ActivityMapBinding;
+import com.franciscodokkan.woofmap.ui.MapaEstilo;
 import com.franciscodokkan.woofmap.ui.SimpleViewModelFactory;
 import com.franciscodokkan.woofmap.ui.auth.LoginActivity;
 import com.franciscodokkan.woofmap.ui.lugar.CreateLugarActivity;
-import com.franciscodokkan.woofmap.ui.lugar.LugarDetailActivity;
+import com.franciscodokkan.woofmap.ui.lugar.LugarDetailSheet;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
@@ -48,7 +50,6 @@ import java.util.Map;
 public class MapActivity extends AppCompatActivity {
 
     private static final LatLng MADRID = new LatLng(40.4168, -3.7038);
-    private static final String ESTILO_MAPA = "https://tiles.openfreemap.org/styles/liberty";
     private static final int PETICION_UBICACION = 1;
 
     private ActivityMapBinding binding;
@@ -63,13 +64,6 @@ public class MapActivity extends AppCompatActivity {
     private final Map<Marker, LugarResponse> marcadores = new HashMap<>();
 
     private final ActivityResultLauncher<Intent> createLugarLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK) {
-                    viewModel.recargar();
-                }
-            });
-
-    private final ActivityResultLauncher<Intent> lugarDetailLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK) {
                     viewModel.recargar();
@@ -95,7 +89,11 @@ public class MapActivity extends AppCompatActivity {
         observarViewModel();
         configurarFiltroCategoria();
         binding.botonSalir.setOnClickListener(v -> cerrarSesion());
-        binding.fabCrearLugar.setOnClickListener(v -> abrirCrearLugar());
+        binding.botonPerfil.setOnClickListener(v -> Toast.makeText(
+                this, R.string.mapa_perfil_no_disponible, Toast.LENGTH_SHORT).show());
+        binding.botonCrearLugar.setOnClickListener(v -> abrirCrearLugar());
+        getSupportFragmentManager().setFragmentResultListener(
+                LugarDetailSheet.RESULTADO_CAMBIO, this, (clave, resultado) -> viewModel.recargar());
 
         configurarMapa();
         pedirUbicacion();
@@ -107,18 +105,20 @@ public class MapActivity extends AppCompatActivity {
         opciones.add(getString(R.string.mapa_filtro_todos));
         Collections.addAll(opciones, categoriasArray);
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_dropdown_item_1line, opciones);
-        binding.spinnerFiltroCategoria.setAdapter(adapter);
-        binding.spinnerFiltroCategoria.setText(getString(R.string.mapa_filtro_todos), false);
-
-        binding.spinnerFiltroCategoria.setOnItemClickListener((parent, view, position, id) -> {
-            String seleccion = opciones.get(position);
-            if (getString(R.string.mapa_filtro_todos).equalsIgnoreCase(seleccion)) {
-                viewModel.setCategoria(null);
-            } else {
-                viewModel.setCategoria(seleccion);
+        binding.botonFiltro.setText(getString(R.string.mapa_filtro_todos));
+        binding.botonFiltro.setOnClickListener(v -> {
+            PopupMenu menu = new PopupMenu(this, v);
+            for (int i = 0; i < opciones.size(); i++) {
+                menu.getMenu().add(Menu.NONE, i, i, opciones.get(i));
             }
+            menu.setOnMenuItemClickListener(item -> {
+                String seleccion = opciones.get(item.getItemId());
+                binding.botonFiltro.setText(seleccion);
+                viewModel.setCategoria(
+                        getString(R.string.mapa_filtro_todos).equalsIgnoreCase(seleccion) ? null : seleccion);
+                return true;
+            });
+            menu.show();
         });
     }
 
@@ -132,7 +132,7 @@ public class MapActivity extends AppCompatActivity {
             mapa = map;
             mapa.getUiSettings().setCompassEnabled(true);
             mapa.moveCamera(CameraUpdateFactory.newLatLngZoom(MADRID, 11));
-            mapa.setStyle(new Style.Builder().fromUri(ESTILO_MAPA), estilo -> {
+            mapa.setStyle(new Style.Builder().fromUri(MapaEstilo.URL), estilo -> {
                 estiloCargado = true;
                 pintarLugares();
             });
@@ -148,17 +148,8 @@ public class MapActivity extends AppCompatActivity {
     }
 
     private void abrirDetalleLugar(LugarResponse lugar) {
-        Intent intent = new Intent(this, LugarDetailActivity.class);
-        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_ID, lugar.id != null ? lugar.id : -1L);
-        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_NOMBRE, lugar.nombre);
-        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_DESCRIPCION, lugar.descripcion);
-        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_CATEGORIA, lugar.categoria);
-        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_LAT, lugar.lat != null ? lugar.lat : 0.0);
-        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_LON, lugar.lon != null ? lugar.lon : 0.0);
-        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_USUARIO_ID, lugar.usuarioId != null ? lugar.usuarioId : -1L);
-        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_VALORACION, lugar.valoracionMedia != null ? lugar.valoracionMedia : 0.0);
-        intent.putExtra(LugarDetailActivity.EXTRA_LUGAR_COMENTARIOS, lugar.totalComentarios != null ? lugar.totalComentarios : 0L);
-        lugarDetailLauncher.launch(intent);
+        LugarDetailSheet.newInstance(lugar)
+                .show(getSupportFragmentManager(), "detalle");
     }
 
     private void observarViewModel() {
@@ -208,6 +199,8 @@ public class MapActivity extends AppCompatActivity {
 
     private void pedirUbicacion() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             obtenerUbicacion();
         } else {
@@ -247,7 +240,14 @@ public class MapActivity extends AppCompatActivity {
         if (requestCode != PETICION_UBICACION) {
             return;
         }
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        boolean concedido = false;
+        for (int resultado : grantResults) {
+            if (resultado == PackageManager.PERMISSION_GRANTED) {
+                concedido = true;
+                break;
+            }
+        }
+        if (concedido) {
             obtenerUbicacion();
         } else {
             Toast.makeText(this, R.string.mapa_permiso_denegado, Toast.LENGTH_LONG).show();

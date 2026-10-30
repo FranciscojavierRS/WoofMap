@@ -14,8 +14,6 @@ public class TokenStore {
     private static final String NOMBRE_FICHERO = "woofmap_sesion";
     private static final String CLAVE_TOKEN = "token";
     private static final String CLAVE_USUARIO_ID = "usuario_id";
-    private static final String CLAVE_NOMBRE = "nombre";
-    private static final String CLAVE_EMAIL = "email";
 
     private static TokenStore instancia;
 
@@ -48,11 +46,9 @@ public class TokenStore {
         }
     }
 
-    public void guardarSesion(String token, Long usuarioId, String nombre, String email) {
+    public void guardarSesion(String token, Long usuarioId) {
         SharedPreferences.Editor editor = preferencias.edit()
-                .putString(CLAVE_TOKEN, token)
-                .putString(CLAVE_NOMBRE, nombre)
-                .putString(CLAVE_EMAIL, email);
+                .putString(CLAVE_TOKEN, token);
         if (usuarioId != null) {
             editor.putLong(CLAVE_USUARIO_ID, usuarioId);
         }

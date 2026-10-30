@@ -15,7 +15,7 @@ public record RegisterRequest(
         String email,
 
         @NotBlank(message = "La contrasena es obligatoria")
-        @Size(min = 8, max = 100, message = "La contrasena debe tener al menos 8 caracteres")
+        @Size(min = 8, max = 72, message = "La contrasena debe tener entre 8 y 72 caracteres")
         String password
 ) {
 }

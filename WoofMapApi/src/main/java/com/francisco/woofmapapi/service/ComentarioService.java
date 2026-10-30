@@ -21,6 +21,8 @@ import java.util.List;
 @Transactional
 public class ComentarioService {
 
+    // shortcut: el listado se corta en 200 sin paginar; anadir page/size y "cargar mas"
+    // cuando algun lugar supere ese numero de comentarios.
     private static final int LIMITE_LISTADO = 200;
 
     private final ComentarioRepository comentarioRepository;

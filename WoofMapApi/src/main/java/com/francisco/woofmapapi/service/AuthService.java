@@ -14,10 +14,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -27,6 +27,10 @@ public class AuthService {
     private static final int MAX_INTENTOS_FALLIDOS = 5;
     private static final Duration VENTANA_INTENTOS = Duration.ofMinutes(5);
     private static final int MAX_EMAILS_EN_MEMORIA = 10_000;
+    private static final int MAX_BYTES_PASSWORD = 72;
+    // Hash BCrypt de una contrasena aleatoria: se compara cuando el email no existe
+    // para que el tiempo de respuesta no revele si la cuenta esta registrada.
+    static final String HASH_SENUELO = "$2a$10$Dc7/GinWjhmQgcck0odRD.Nf6M08cBtxS370glbb8atT.gLBmL7Ve";
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
@@ -45,6 +49,10 @@ public class AuthService {
 
     public AuthResponse registrar(RegisterRequest request) {
         String email = request.email().toLowerCase().trim();
+        if (request.password().getBytes(StandardCharsets.UTF_8).length > MAX_BYTES_PASSWORD) {
+            throw new IllegalArgumentException(
+                    "La contrasena no puede superar los " + MAX_BYTES_PASSWORD + " bytes");
+        }
         if (usuarioRepository.existsByEmail(email)) {
             throw new EmailAlreadyExistsException("El email ya esta registrado: " + email);
         }
@@ -77,17 +85,22 @@ public class AuthService {
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
         String email = request.email().toLowerCase().trim();
-        verificarLimite(email);
 
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
-        if (usuarioOpt.isEmpty()
-                || !passwordEncoder.matches(request.password(), usuarioOpt.get().getPasswordHash())) {
+        Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
+        // Siempre se ejecuta BCrypt, exista o no la cuenta, para no filtrar emails por tiempo.
+        String hash = usuario != null ? usuario.getPasswordHash() : HASH_SENUELO;
+        boolean credencialesValidas = passwordEncoder.matches(request.password(), hash) && usuario != null;
+
+        if (!credencialesValidas) {
             registrarFallo(email);
+            if (superaLimite(email)) {
+                throw new TooManyRequestsException(
+                        "Demasiados intentos fallidos. Espera unos minutos antes de volver a intentarlo.");
+            }
             throw new BadCredentialsException("Credenciales invalidas");
         }
 
         intentosFallidos.remove(email);
-        Usuario usuario = usuarioOpt.get();
         String token = jwtService.generarToken(usuario);
 
         return new AuthResponse(
@@ -98,14 +111,11 @@ public class AuthService {
         );
     }
 
-    private void verificarLimite(String email) {
+    private boolean superaLimite(String email) {
         IntentosLogin intentos = intentosFallidos.get(email);
-        if (intentos != null
+        return intentos != null
                 && intentos.inicio().plus(VENTANA_INTENTOS).isAfter(Instant.now())
-                && intentos.cantidad() >= MAX_INTENTOS_FALLIDOS) {
-            throw new TooManyRequestsException(
-                    "Demasiados intentos fallidos. Espera unos minutos antes de volver a intentarlo.");
-        }
+                && intentos.cantidad() > MAX_INTENTOS_FALLIDOS;
     }
 
     private void registrarFallo(String email) {

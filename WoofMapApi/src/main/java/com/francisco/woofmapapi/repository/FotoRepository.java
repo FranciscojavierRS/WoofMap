@@ -13,4 +13,6 @@ public interface FotoRepository extends JpaRepository<Foto, Long> {
     List<Foto> findByLugarIdOrderByFechaSubidaDesc(Long lugarId, Pageable pageable);
 
     List<Foto> findByLugarId(Long lugarId);
+
+    long countByLugarId(Long lugarId);
 }

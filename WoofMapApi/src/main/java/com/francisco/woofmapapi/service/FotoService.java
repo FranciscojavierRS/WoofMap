@@ -25,6 +25,9 @@ import java.util.List;
 public class FotoService {
 
     private static final int LIMITE_LISTADO = 200;
+    // shortcut: tope por lugar para no llenar el volumen; al abrirse el registro conviene
+    // una cuota por usuario o un limite de disco en el despliegue.
+    private static final int MAX_FOTOS_POR_LUGAR = 20;
 
     private final FotoRepository fotoRepository;
     private final LugarRepository lugarRepository;
@@ -51,6 +54,11 @@ public class FotoService {
 
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con id: " + usuarioId));
+
+        if (fotoRepository.countByLugarId(lugarId) >= MAX_FOTOS_POR_LUGAR) {
+            throw new IllegalArgumentException(
+                    "Este lugar ya tiene el maximo de " + MAX_FOTOS_POR_LUGAR + " fotos");
+        }
 
         String url = almacenamientoFotos.guardar(archivo);
 

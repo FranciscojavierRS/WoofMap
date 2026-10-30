@@ -86,12 +86,14 @@ public class LugarDetailViewModelTest {
     }
 
     @Test
-    public void editarLugarExitosoActualizaLugar() {
+    public void editarLugarExitosoNotificaYRecargaElLugar() {
         LugarResponse lugar = new LugarResponse(1L, "Nuevo Nombre", "PARQUE", 40.4, -3.7);
         when(lugarRepo.editar(eq(1L), any())).thenReturn(ApiResult.exito(lugar));
+        when(lugarRepo.obtener(1L)).thenReturn(ApiResult.exito(lugar));
 
         viewModel.editarLugar(1L, "Nuevo Nombre", "Desc", "PARQUE", 40.4, -3.7);
 
+        assertEquals(Boolean.TRUE, valor(viewModel.getLugarEditado()));
         assertNotNull(valor(viewModel.getLugar()));
         assertEquals("Nuevo Nombre", valor(viewModel.getLugar()).nombre);
     }

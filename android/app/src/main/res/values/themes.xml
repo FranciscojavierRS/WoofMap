@@ -5,4 +5,15 @@
         <item name="colorPrimary">@color/woofmap_primary</item>
         <item name="colorOnPrimary">@color/white</item>
     </style>
+
+    <!-- Mapa y detalle de lugar: fondo oscuro con acento lavanda, como en los mockups. -->
+    <style name="Theme.WoofMap.Oscuro" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/woofmap_lavanda</item>
+        <item name="colorOnPrimary">@color/woofmap_sobre_lavanda</item>
+        <item name="colorPrimaryContainer">@color/woofmap_lavanda</item>
+        <item name="colorOnPrimaryContainer">@color/woofmap_sobre_lavanda</item>
+        <item name="colorSurface">@color/woofmap_fondo</item>
+        <item name="colorSurfaceContainerLow">@color/woofmap_superficie</item>
+        <item name="android:colorBackground">@color/woofmap_fondo</item>
+    </style>
 </resources>

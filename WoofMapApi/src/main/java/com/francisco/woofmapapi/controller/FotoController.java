@@ -31,7 +31,7 @@ public class FotoController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Subir foto a un lugar",
-            description = "Sube una imagen (JPEG, PNG o WebP, máximo 5 MB) asociada al lugar indicado."
+            description = "Sube una imagen (JPEG, PNG o WebP, maximo 15 MB) asociada al lugar indicado."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Foto subida correctamente"),

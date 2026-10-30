@@ -2,15 +2,10 @@ package com.franciscodokkan.woofmap.data.repository;
 
 import com.franciscodokkan.woofmap.data.remote.ApiResult;
 import com.franciscodokkan.woofmap.data.remote.LugarApi;
-import com.franciscodokkan.woofmap.data.remote.RespuestaError;
 import com.franciscodokkan.woofmap.data.remote.model.LugarRequest;
 import com.franciscodokkan.woofmap.data.remote.model.LugarResponse;
 
-import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
-
-import retrofit2.Response;
 
 public class LugarRepository {
 
@@ -27,64 +22,23 @@ public class LugarRepository {
     }
 
     public ApiResult<List<LugarResponse>> listar(Double lat, Double lon, String categoria) {
-        try {
-            Double radio = (lat != null && lon != null) ? RADIO_METROS : null;
-            Response<List<LugarResponse>> respuesta = api.listar(lat, lon, radio, categoria).execute();
-            if (respuesta.isSuccessful()) {
-                List<LugarResponse> lugares = respuesta.body();
-                return ApiResult.exito(lugares != null ? lugares : Collections.emptyList());
-            }
-            return ApiResult.error(respuesta.code(), RespuestaError.mensaje(respuesta));
-        } catch (IOException e) {
-            return ApiResult.error(0, "No se pudo conectar con el servidor");
-        }
+        Double radio = (lat != null && lon != null) ? RADIO_METROS : null;
+        return ApiResult.lista(api.listar(lat, lon, radio, categoria));
     }
 
     public ApiResult<LugarResponse> crear(LugarRequest request) {
-        try {
-            Response<LugarResponse> respuesta = api.crear(request).execute();
-            if (respuesta.isSuccessful()) {
-                return ApiResult.exito(respuesta.body());
-            }
-            return ApiResult.error(respuesta.code(), RespuestaError.mensaje(respuesta));
-        } catch (IOException e) {
-            return ApiResult.error(0, "No se pudo conectar con el servidor");
-        }
+        return ApiResult.ejecutar(api.crear(request));
     }
 
     public ApiResult<LugarResponse> obtener(long id) {
-        try {
-            Response<LugarResponse> respuesta = api.obtener(id).execute();
-            if (respuesta.isSuccessful()) {
-                return ApiResult.exito(respuesta.body());
-            }
-            return ApiResult.error(respuesta.code(), RespuestaError.mensaje(respuesta));
-        } catch (IOException e) {
-            return ApiResult.error(0, "No se pudo conectar con el servidor");
-        }
+        return ApiResult.ejecutar(api.obtener(id));
     }
 
     public ApiResult<LugarResponse> editar(long id, LugarRequest request) {
-        try {
-            Response<LugarResponse> respuesta = api.editar(id, request).execute();
-            if (respuesta.isSuccessful()) {
-                return ApiResult.exito(respuesta.body());
-            }
-            return ApiResult.error(respuesta.code(), RespuestaError.mensaje(respuesta));
-        } catch (IOException e) {
-            return ApiResult.error(0, "No se pudo conectar con el servidor");
-        }
+        return ApiResult.ejecutar(api.editar(id, request));
     }
 
     public ApiResult<Void> eliminar(long id) {
-        try {
-            Response<Void> respuesta = api.eliminar(id).execute();
-            if (respuesta.isSuccessful()) {
-                return ApiResult.exito(null);
-            }
-            return ApiResult.error(respuesta.code(), RespuestaError.mensaje(respuesta));
-        } catch (IOException e) {
-            return ApiResult.error(0, "No se pudo conectar con el servidor");
-        }
+        return ApiResult.ejecutar(api.eliminar(id));
     }
 }

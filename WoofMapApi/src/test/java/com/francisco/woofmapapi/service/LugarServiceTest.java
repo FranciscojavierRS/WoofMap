@@ -19,7 +19,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -231,13 +230,13 @@ class LugarServiceTest {
     @Test
     @DisplayName("Debe listar todos los lugares con un limite duro")
     void debeListarTodosConLimite() {
-        when(lugarRepository.findAll(any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(lugarMock)));
+        when(lugarRepository.findAllByOrderByIdAsc(any(Pageable.class)))
+                .thenReturn(List.of(lugarMock));
 
         List<LugarResponse> result = lugarService.listarLugares(null, null, null, null);
 
         assertThat(result).hasSize(1);
-        verify(lugarRepository).findAll(argThat((Pageable p) -> p.getPageSize() == 200));
+        verify(lugarRepository).findAllByOrderByIdAsc(argThat((Pageable p) -> p.getPageSize() == 200));
     }
 
     @Test

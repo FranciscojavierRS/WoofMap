@@ -119,6 +119,8 @@ class AuthServiceTest {
                 .isInstanceOf(BadCredentialsException.class)
                 .hasMessageContaining("Credenciales invalidas");
 
+        // Aunque la cuenta no exista, se compara contra el hash senuelo para no delatar emails por tiempo.
+        verify(passwordEncoder).matches("password123", AuthService.HASH_SENUELO);
         verify(jwtService, never()).generarToken(any());
     }
 
@@ -153,6 +155,37 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.login(request))
                 .isInstanceOf(TooManyRequestsException.class)
                 .hasMessageContaining("Demasiados intentos");
+    }
+
+    @Test
+    @DisplayName("La contrasena correcta sigue funcionando despues de 5 fallos")
+    void laContrasenaCorrectaSigueFuncionandoTrasCincoFallos() {
+        LoginRequest incorrecta = new LoginRequest("carlos@woofmap.com", "passwordIncorrecta");
+        LoginRequest correcta = new LoginRequest("carlos@woofmap.com", "password123");
+        when(usuarioRepository.findByEmail("carlos@woofmap.com")).thenReturn(Optional.of(usuarioMock));
+        when(passwordEncoder.matches("passwordIncorrecta", usuarioMock.getPasswordHash())).thenReturn(false);
+        when(passwordEncoder.matches("password123", usuarioMock.getPasswordHash())).thenReturn(true);
+        when(jwtService.generarToken(usuarioMock)).thenReturn("jwt.token.mock");
+
+        for (int i = 0; i < 5; i++) {
+            assertThatThrownBy(() -> authService.login(incorrecta))
+                    .isInstanceOf(BadCredentialsException.class);
+        }
+
+        assertThat(authService.login(correcta).token()).isEqualTo("jwt.token.mock");
+    }
+
+    @Test
+    @DisplayName("Debe rechazar una contrasena de mas de 72 bytes al registrar")
+    void debeRechazarPasswordDeMasDe72Bytes() {
+        // 36 emojis = 72 caracteres pero 144 bytes: pasa @Size y lo corta el servicio.
+        RegisterRequest request = new RegisterRequest("Carlos Gomez", "carlos@woofmap.com", "🐕".repeat(36));
+
+        assertThatThrownBy(() -> authService.registrar(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("72 bytes");
+
+        verify(usuarioRepository, never()).saveAndFlush(any());
     }
 
     @Test

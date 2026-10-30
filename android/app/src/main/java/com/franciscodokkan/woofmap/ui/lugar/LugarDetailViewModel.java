@@ -45,6 +45,7 @@ public class LugarDetailViewModel extends ViewModel {
     private final MutableLiveData<Boolean> subiendoFoto = new MutableLiveData<>(false);
     private final MutableLiveData<String> error = new MutableLiveData<>();
     private final MutableLiveData<Boolean> lugarEliminado = new MutableLiveData<>(false);
+    private final MutableLiveData<Boolean> lugarEditado = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> sesionExpirada = new MutableLiveData<>(false);
 
     public LugarDetailViewModel(LugarRepository lugarRepo, FotoRepository fotoRepo, ComentarioRepository comentarioRepo) {
@@ -65,6 +66,7 @@ public class LugarDetailViewModel extends ViewModel {
     public LiveData<Boolean> getSubiendoFoto() { return subiendoFoto; }
     public LiveData<String> getError() { return error; }
     public LiveData<Boolean> getLugarEliminado() { return lugarEliminado; }
+    public LiveData<Boolean> getLugarEditado() { return lugarEditado; }
     public LiveData<Boolean> getSesionExpirada() { return sesionExpirada; }
 
     public void cargarFotos(long lugarId) {
@@ -189,7 +191,9 @@ public class LugarDetailViewModel extends ViewModel {
             ApiResult<LugarResponse> res = lugarRepo.editar(lugarId, req);
             cargando.postValue(false);
             if (res.esExito()) {
-                lugar.postValue(res.datos);
+                lugarEditado.postValue(true);
+                // La respuesta del PUT llega sin valoracion; recargamos para no borrarla en pantalla.
+                cargarLugar(lugarId);
             } else if (res.esNoAutorizado()) {
                 sesionExpirada.postValue(true);
             } else {

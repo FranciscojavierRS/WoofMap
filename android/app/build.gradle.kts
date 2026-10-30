@@ -19,7 +19,7 @@ android {
 
         // 10.0.2.2 es el host desde el emulador. En un dispositivo fisico hay que
         // poner aqui la IP local del equipo y anadirla a network_security_config.xml.
-        buildConfigField("String", "API_BASE_URL", "\"http://192.168.0.17:8080/\"")
+        buildConfigField("String", "API_BASE_URL", "\"http://192.168.0.51:8080/\"")
     }
 
     compileOptions {

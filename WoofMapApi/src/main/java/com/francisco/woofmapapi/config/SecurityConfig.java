@@ -1,8 +1,6 @@
 package com.francisco.woofmapapi.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
 import com.francisco.woofmapapi.exception.ErrorResponse;
 import com.francisco.woofmapapi.repository.UsuarioRepository;
 import com.francisco.woofmapapi.security.JwtAuthFilter;
@@ -28,10 +26,8 @@ public class SecurityConfig {
 
     private final ObjectMapper objectMapper;
 
-    public SecurityConfig() {
-        this.objectMapper = new ObjectMapper()
-                .registerModule(new JavaTimeModule())
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    public SecurityConfig(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
     }
 
     @Bean

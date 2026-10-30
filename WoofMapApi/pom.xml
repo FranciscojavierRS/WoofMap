@@ -82,6 +82,11 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
+        <!-- Spring Boot 4 separa las auto-configuraciones por modulo: sin esto Flyway no arranca. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-flyway</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.hibernate.orm</groupId>

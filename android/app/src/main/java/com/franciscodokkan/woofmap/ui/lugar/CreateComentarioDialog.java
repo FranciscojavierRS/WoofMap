@@ -3,7 +3,6 @@ package com.franciscodokkan.woofmap.ui.lugar;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.RatingBar;
 import android.widget.Toast;
 
@@ -16,17 +15,11 @@ import com.franciscodokkan.woofmap.databinding.DialogComentarioBinding;
 
 public class CreateComentarioDialog extends DialogFragment {
 
-    private static final String ARG_LUGAR_ID = "lugar_id";
+    public static final String RESULTADO = "comentario_creado";
+    public static final String CLAVE_TEXTO = "texto";
+    public static final String CLAVE_VALORACION = "valoracion";
 
     private DialogComentarioBinding binding;
-
-    public static CreateComentarioDialog newInstance(long lugarId) {
-        CreateComentarioDialog f = new CreateComentarioDialog();
-        Bundle args = new Bundle();
-        args.putLong(ARG_LUGAR_ID, lugarId);
-        f.setArguments(args);
-        return f;
-    }
 
     @NonNull
     @Override
@@ -53,9 +46,10 @@ public class CreateComentarioDialog extends DialogFragment {
                 Toast.makeText(requireContext(), R.string.error_valoracion_obligatoria, Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (requireActivity() instanceof LugarDetailActivity activity) {
-                activity.onComentarioCreado(texto, (short) valoracion);
-            }
+            Bundle resultado = new Bundle();
+            resultado.putString(CLAVE_TEXTO, texto);
+            resultado.putShort(CLAVE_VALORACION, (short) valoracion);
+            getParentFragmentManager().setFragmentResult(RESULTADO, resultado);
             dialog.dismiss();
         }));
 

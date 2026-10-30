@@ -1,75 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
 
-    <org.maplibre.android.maps.MapView
-        android:id="@+id/mapa"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-    <!-- Top Overlay: Filter & Logout -->
-    <LinearLayout
+    <!-- Cabecera -->
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top"
-        android:orientation="horizontal"
-        android:padding="12dp">
+        android:paddingStart="16dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp"
+        android:text="@string/app_name"
+        android:textAppearance="?attr/textAppearanceTitleLarge"
+        android:textColor="?attr/colorOnSurface"
+        android:textStyle="bold" />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/layoutFiltroCategoria"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@color/white"
-            android:hint="@string/mapa_filtrar">
+    <!-- Mapa con el boton de anadir lugar flotando encima -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-            <AutoCompleteTextView
-                android:id="@+id/spinnerFiltroCategoria"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="none" />
-        </com.google.android.material.textfield.TextInputLayout>
+        <org.maplibre.android.maps.MapView
+            android:id="@+id/mapa"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/botonSalir"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:id="@+id/botonCrearLugar"
+            style="@style/Widget.Material3.Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="16dp"
+            android:text="@string/mapa_anadir_lugar"
+            app:cornerRadius="28dp" />
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progreso"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/textoVacio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@color/woofmap_superficie"
+            android:padding="16dp"
+            android:text="@string/mapa_sin_lugares"
+            android:textColor="?attr/colorOnSurface"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <!-- Menu inferior: filtro, perfil y salir -->
+    <LinearLayout
+        android:id="@+id/barraInferior"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        android:elevation="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="8dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/botonFiltro"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:maxWidth="220dp"
+            android:text="@string/mapa_filtro_todos"
+            app:icon="@drawable/ic_filtro"
+            app:iconGravity="textStart"
+            app:iconTint="?attr/colorPrimary" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <ImageButton
+            android:id="@+id/botonPerfil"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/mapa_perfil"
+            android:src="@drawable/ic_perfil"
+            app:tint="?attr/colorOnSurface" />
+
+        <ImageButton
+            android:id="@+id/botonSalir"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_marginStart="8dp"
-            android:backgroundTint="@color/white"
-            android:text="@string/mapa_cerrar_sesion" />
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/mapa_cerrar_sesion"
+            android:src="@drawable/ic_salir"
+            app:tint="?attr/colorOnSurface" />
     </LinearLayout>
 
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/fabCrearLugar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:text="@string/mapa_anadir_lugar"
-        app:icon="@android:drawable/ic_input_add" />
-
-    <com.google.android.material.progressindicator.CircularProgressIndicator
-        android:id="@+id/progreso"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:indeterminate="true"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/textoVacio"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:background="@color/white"
-        android:padding="16dp"
-        android:text="@string/mapa_sin_lugares"
-        android:textColor="@color/black"
-        android:visibility="gone" />
-
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</LinearLayout>

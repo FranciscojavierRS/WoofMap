@@ -3,4 +3,11 @@
     <color name="woofmap_primary">#FF6F43</color>
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
+
+    <!-- Tema oscuro del mapa y del detalle -->
+    <color name="woofmap_lavanda">#FFD0BCFF</color>
+    <color name="woofmap_sobre_lavanda">#FF381E72</color>
+    <color name="woofmap_fondo">#FF15141A</color>
+    <color name="woofmap_superficie">#FF1B1A22</color>
+    <color name="woofmap_texto_secundario">#FFB9B7C4</color>
 </resources>

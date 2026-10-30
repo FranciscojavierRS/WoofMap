@@ -24,7 +24,7 @@ public class AlmacenamientoFotosDisco implements AlmacenamientoFotos {
     private static final Set<String> EXTENSIONES_PERMITIDAS = Set.of(
             ".jpg", ".jpeg", ".png", ".webp"
     );
-    private static final long TAMANO_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+    private static final long TAMANO_MAX_BYTES = 15 * 1024 * 1024; // 15 MB
 
     private final Path directorioBase;
 
@@ -86,7 +86,7 @@ public class AlmacenamientoFotosDisco implements AlmacenamientoFotos {
 
         if (archivo.getSize() > TAMANO_MAX_BYTES) {
             throw new InvalidFileException(
-                    "El tamano del archivo supera el limite de 5 MB (recibido: " + archivo.getSize() + " bytes)");
+                    "El tamano del archivo supera el limite de 15 MB (recibido: " + archivo.getSize() + " bytes)");
         }
 
         String mime = archivo.getContentType();

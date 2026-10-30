@@ -14,6 +14,8 @@ public interface LugarRepository extends JpaRepository<Lugar, Long> {
 
     List<Lugar> findByCategoria(String categoria, Pageable pageable);
 
+    List<Lugar> findAllByOrderByIdAsc(Pageable pageable);
+
     @Query(value = """
             SELECT l.* FROM lugar l
             WHERE ST_DWithin(l.ubicacion, ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography, :radio)

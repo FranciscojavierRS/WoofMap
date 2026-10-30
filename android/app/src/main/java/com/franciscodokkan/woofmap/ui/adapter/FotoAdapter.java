@@ -16,7 +16,9 @@ import com.franciscodokkan.woofmap.databinding.ItemFotoBinding;
 
 public class FotoAdapter extends ListAdapter<FotoResponse, FotoAdapter.ViewHolder> {
 
-    public FotoAdapter() {
+    private final int anchoItemPx;
+
+    public FotoAdapter(int anchoItemPx) {
         super(new DiffUtil.ItemCallback<FotoResponse>() {
             @Override
             public boolean areItemsTheSame(@NonNull FotoResponse a, @NonNull FotoResponse b) {
@@ -27,12 +29,14 @@ public class FotoAdapter extends ListAdapter<FotoResponse, FotoAdapter.ViewHolde
                 return a.id != null && a.id.equals(b.id) && a.url != null && a.url.equals(b.url);
             }
         });
+        this.anchoItemPx = anchoItemPx;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         ItemFotoBinding b = ItemFotoBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        b.getRoot().getLayoutParams().width = anchoItemPx;
         return new ViewHolder(b);
     }
 

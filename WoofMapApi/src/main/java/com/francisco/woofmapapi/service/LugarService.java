@@ -33,6 +33,7 @@ public class LugarService {
 
     private static final Logger log = LoggerFactory.getLogger(LugarService.class);
 
+    // shortcut: todos los listados se cortan en 200 filas sin paginar.
     private static final int LIMITE_LISTADO = 200;
     private static final double RADIO_MAX_METROS = 50_000.0;
 
@@ -124,7 +125,7 @@ public class LugarService {
         Pageable limite = PageRequest.of(0, LIMITE_LISTADO);
         List<Lugar> lugares = (categoriaFiltro != null)
                 ? lugarRepository.findByCategoria(categoriaFiltro, limite)
-                : lugarRepository.findAll(limite).getContent();
+                : lugarRepository.findAllByOrderByIdAsc(limite);
 
         return lugares.stream()
                 .map(lugar -> toResponse(lugar, null))
@@ -207,6 +208,7 @@ public class LugarService {
                 GeometryUtils.getLat(lugar.getUbicacion()),
                 GeometryUtils.getLon(lugar.getUbicacion()),
                 lugar.getUsuario() != null ? lugar.getUsuario().getId() : null,
+                lugar.getUsuario() != null ? lugar.getUsuario().getNombre() : null,
                 lugar.getFechaCreacion(),
                 distanciaMetros,
                 valoracionMedia,

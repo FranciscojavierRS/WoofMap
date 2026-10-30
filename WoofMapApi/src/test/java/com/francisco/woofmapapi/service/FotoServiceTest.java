@@ -115,6 +115,22 @@ class FotoServiceTest {
     }
 
     @Test
+    @DisplayName("subirFoto: rechaza la foto cuando el lugar ya tiene el maximo")
+    void subirFoto_limiteAlcanzado_lanzaIllegalArgumentException() {
+        MockMultipartFile archivo = new MockMultipartFile("foto", "perro.jpg", "image/jpeg", "img".getBytes());
+        when(lugarRepository.findById(10L)).thenReturn(Optional.of(lugarExistente));
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioExistente));
+        when(fotoRepository.countByLugarId(10L)).thenReturn(20L);
+
+        assertThatThrownBy(() -> fotoService.subirFoto(10L, archivo, 1L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("maximo de 20");
+
+        verify(almacenamientoFotos, never()).guardar(any());
+        verify(fotoRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("listarFotosDeLugar: devuelve lista de FotoResponse")
     void listarFotosDeLugar_lugarExistente_devuelveLista() {
         when(lugarRepository.existsById(10L)).thenReturn(true);

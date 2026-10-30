@@ -10,6 +10,7 @@ public record LugarResponse(
         Double lat,
         Double lon,
         Long usuarioId,
+        String usuarioNombre,
         Instant fechaCreacion,
         Double distanciaMetros,
         Double valoracionMedia,
