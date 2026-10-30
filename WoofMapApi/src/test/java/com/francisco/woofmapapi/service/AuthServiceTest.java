@@ -154,4 +154,29 @@ class AuthServiceTest {
                 .isInstanceOf(TooManyRequestsException.class)
                 .hasMessageContaining("Demasiados intentos");
     }
+
+    @Test
+    @DisplayName("Llenar el mapa de intentos no borra los limites de un email ya bloqueado")
+    void llenarElMapaNoBorraLosLimitesExistentes() {
+        LoginRequest victima = new LoginRequest("carlos@woofmap.com", "passwordIncorrecta");
+        when(usuarioRepository.findByEmail("carlos@woofmap.com")).thenReturn(Optional.of(usuarioMock));
+        when(passwordEncoder.matches("passwordIncorrecta", usuarioMock.getPasswordHash())).thenReturn(false);
+
+        for (int i = 0; i < 5; i++) {
+            assertThatThrownBy(() -> authService.login(victima))
+                    .isInstanceOf(BadCredentialsException.class);
+        }
+
+        // Rellenamos el mapa con emails aleatorios hasta superar el tope.
+        for (int i = 0; i < 10_001; i++) {
+            try {
+                authService.login(new LoginRequest("relleno" + i + "@woofmap.com", "x"));
+            } catch (BadCredentialsException expected) {
+                // El login falla, pero lo que importa es que registre el intento.
+            }
+        }
+
+        assertThatThrownBy(() -> authService.login(victima))
+                .isInstanceOf(TooManyRequestsException.class);
+    }
 }

@@ -17,9 +17,14 @@ import com.franciscodokkan.woofmap.data.repository.ComentarioRepository;
 import com.franciscodokkan.woofmap.data.repository.FotoRepository;
 import com.franciscodokkan.woofmap.data.repository.LugarRepository;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import okhttp3.MediaType;
@@ -62,33 +67,71 @@ public class LugarDetailViewModel extends ViewModel {
     public LiveData<Boolean> getLugarEliminado() { return lugarEliminado; }
     public LiveData<Boolean> getSesionExpirada() { return sesionExpirada; }
 
-    public void setLugar(LugarResponse l) {
-        lugar.setValue(l);
-    }
-
     public void cargarFotos(long lugarId) {
         ejecutor.execute(() -> {
             ApiResult<List<FotoResponse>> res = fotoRepo.listar(lugarId);
-            if (res.esExito()) fotos.postValue(res.datos);
+            if (res.esExito()) {
+                fotos.postValue(res.datos);
+            } else if (res.esNoAutorizado()) {
+                sesionExpirada.postValue(true);
+            } else {
+                error.postValue(res.error);
+            }
+        });
+    }
+
+    public void cargarLugar(long lugarId) {
+        ejecutor.execute(() -> {
+            ApiResult<LugarResponse> res = lugarRepo.obtener(lugarId);
+            if (res.esExito()) {
+                lugar.postValue(res.datos);
+            } else if (res.esNoAutorizado()) {
+                sesionExpirada.postValue(true);
+            } else {
+                error.postValue(res.error);
+            }
         });
     }
 
     public void cargarComentarios(long lugarId) {
         ejecutor.execute(() -> {
             ApiResult<List<ComentarioResponse>> res = comentarioRepo.listar(lugarId);
-            if (res.esExito()) comentarios.postValue(res.datos);
+            if (res.esExito()) {
+                comentarios.postValue(res.datos);
+            } else if (res.esNoAutorizado()) {
+                sesionExpirada.postValue(true);
+            } else {
+                error.postValue(res.error);
+            }
         });
     }
 
-    public void subirFoto(long lugarId, Uri uri, ContentResolver resolver) {
+    public void subirFoto(long lugarId, Uri uri, ContentResolver resolver, File cacheDir) {
         subiendoFoto.setValue(true);
         ejecutor.execute(() -> {
+            File temporal = null;
             try {
-                InputStream is = resolver.openInputStream(uri);
-                byte[] bytes = is.readAllBytes();
-                is.close();
-                RequestBody rb = RequestBody.create(bytes, MediaType.parse("image/*"));
-                MultipartBody.Part part = MultipartBody.Part.createFormData("foto", "foto.jpg", rb);
+                String mime = resolver.getType(uri);
+                if (mime == null) {
+                    mime = "image/jpeg";
+                }
+                String extension = "image/png".equals(mime) ? ".png"
+                        : "image/webp".equals(mime) ? ".webp" : ".jpg";
+                temporal = File.createTempFile("subida_", extension, cacheDir);
+                // Copiamos a fichero para no cargar la foto entera en memoria.
+                try (InputStream entrada = resolver.openInputStream(uri);
+                     OutputStream salida = new FileOutputStream(temporal)) {
+                    if (entrada == null) {
+                        throw new IOException("No se pudo abrir la foto");
+                    }
+                    byte[] buffer = new byte[8192];
+                    int leidos;
+                    while ((leidos = entrada.read(buffer)) != -1) {
+                        salida.write(buffer, 0, leidos);
+                    }
+                }
+                RequestBody rb = RequestBody.create(temporal, MediaType.parse(mime));
+                MultipartBody.Part part = MultipartBody.Part.createFormData("foto", temporal.getName(), rb);
                 ApiResult<FotoResponse> res = fotoRepo.subir(lugarId, part);
                 subiendoFoto.postValue(false);
                 if (res.esExito()) {
@@ -101,6 +144,10 @@ public class LugarDetailViewModel extends ViewModel {
             } catch (Exception e) {
                 subiendoFoto.postValue(false);
                 error.postValue("Error al leer la foto");
+            } finally {
+                if (temporal != null) {
+                    temporal.delete();
+                }
             }
         });
     }
@@ -111,6 +158,7 @@ public class LugarDetailViewModel extends ViewModel {
             ApiResult<ComentarioResponse> res = comentarioRepo.crear(lugarId, req);
             if (res.esExito()) {
                 cargarComentarios(lugarId);
+                cargarLugar(lugarId);
             } else if (res.esNoAutorizado()) {
                 sesionExpirada.postValue(true);
             } else {
@@ -148,5 +196,12 @@ public class LugarDetailViewModel extends ViewModel {
                 error.postValue(res.error);
             }
         });
+    }
+
+    @Override
+    protected void onCleared() {
+        if (ejecutor instanceof ExecutorService) {
+            ((ExecutorService) ejecutor).shutdown();
+        }
     }
 }

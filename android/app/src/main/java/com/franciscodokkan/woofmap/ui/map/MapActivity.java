@@ -23,6 +23,7 @@ import com.franciscodokkan.woofmap.data.remote.ApiClient;
 import com.franciscodokkan.woofmap.data.remote.model.LugarResponse;
 import com.franciscodokkan.woofmap.data.repository.LugarRepository;
 import com.franciscodokkan.woofmap.databinding.ActivityMapBinding;
+import com.franciscodokkan.woofmap.ui.SimpleViewModelFactory;
 import com.franciscodokkan.woofmap.ui.auth.LoginActivity;
 import com.franciscodokkan.woofmap.ui.lugar.CreateLugarActivity;
 import com.franciscodokkan.woofmap.ui.lugar.LugarDetailActivity;
@@ -30,6 +31,7 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
 import org.maplibre.android.MapLibre;
+import org.maplibre.android.annotations.Marker;
 import org.maplibre.android.annotations.MarkerOptions;
 import org.maplibre.android.camera.CameraUpdateFactory;
 import org.maplibre.android.geometry.LatLng;
@@ -39,7 +41,9 @@ import org.maplibre.android.maps.Style;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MapActivity extends AppCompatActivity {
 
@@ -54,7 +58,9 @@ public class MapActivity extends AppCompatActivity {
     private FusedLocationProviderClient clienteUbicacion;
 
     private boolean estiloCargado;
+    private boolean datosCargados;
     private List<LugarResponse> lugares = Collections.emptyList();
+    private final Map<Marker, LugarResponse> marcadores = new HashMap<>();
 
     private final ActivityResultLauncher<Intent> createLugarLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -83,7 +89,7 @@ public class MapActivity extends AppCompatActivity {
         clienteUbicacion = LocationServices.getFusedLocationProviderClient(this);
 
         LugarRepository repositorio = new LugarRepository(ApiClient.lugares(this));
-        viewModel = new ViewModelProvider(this, new MapViewModelFactory(repositorio))
+        viewModel = new ViewModelProvider(this, new SimpleViewModelFactory<>(() -> new MapViewModel(repositorio)))
                 .get(MapViewModel.class);
 
         observarViewModel();
@@ -132,15 +138,7 @@ public class MapActivity extends AppCompatActivity {
             });
 
             mapa.setOnMarkerClickListener(marker -> {
-                LugarResponse seleccionado = null;
-                for (LugarResponse l : lugares) {
-                    if (l.nombre != null && l.nombre.equals(marker.getTitle())
-                            && l.lat != null && Math.abs(l.lat - marker.getPosition().getLatitude()) < 0.0001
-                            && l.lon != null && Math.abs(l.lon - marker.getPosition().getLongitude()) < 0.0001) {
-                        seleccionado = l;
-                        break;
-                    }
-                }
+                LugarResponse seleccionado = marcadores.get(marker);
                 if (seleccionado != null) {
                     abrirDetalleLugar(seleccionado);
                 }
@@ -166,6 +164,7 @@ public class MapActivity extends AppCompatActivity {
     private void observarViewModel() {
         viewModel.getLugares().observe(this, lista -> {
             lugares = lista != null ? lista : Collections.emptyList();
+            datosCargados = lista != null;
             pintarLugares();
         });
         viewModel.getCargando().observe(this, cargando -> {
@@ -190,17 +189,20 @@ public class MapActivity extends AppCompatActivity {
             return;
         }
         mapa.clear();
+        marcadores.clear();
         for (LugarResponse lugar : lugares) {
             if (lugar.lat == null || lugar.lon == null) {
                 continue;
             }
-            mapa.addMarker(new MarkerOptions()
+            Marker marker = mapa.addMarker(new MarkerOptions()
                     .position(new LatLng(lugar.lat, lugar.lon))
                     .title(lugar.nombre)
                     .snippet(lugar.categoria));
+            marcadores.put(marker, lugar);
         }
         binding.textoVacio.setVisibility(
-                lugares.isEmpty() && !Boolean.TRUE.equals(viewModel.getCargando().getValue())
+                datosCargados && lugares.isEmpty()
+                        && !Boolean.TRUE.equals(viewModel.getCargando().getValue())
                         ? View.VISIBLE : View.GONE);
     }
 

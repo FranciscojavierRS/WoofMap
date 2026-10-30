@@ -15,6 +15,7 @@ import com.franciscodokkan.woofmap.data.local.TokenStore;
 import com.franciscodokkan.woofmap.data.remote.ApiClient;
 import com.franciscodokkan.woofmap.data.repository.AuthRepository;
 import com.franciscodokkan.woofmap.databinding.ActivityRegisterBinding;
+import com.franciscodokkan.woofmap.ui.SimpleViewModelFactory;
 import com.franciscodokkan.woofmap.ui.map.MapActivity;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -30,7 +31,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         AuthRepository repositorio =
                 new AuthRepository(ApiClient.auth(this), TokenStore.getInstance(this));
-        viewModel = new ViewModelProvider(this, new AuthViewModelFactory(repositorio))
+        viewModel = new ViewModelProvider(this, new SimpleViewModelFactory<>(() -> new AuthViewModel(repositorio)))
                 .get(AuthViewModel.class);
 
         observarViewModel();

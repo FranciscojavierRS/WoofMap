@@ -52,6 +52,18 @@ public class LugarRepository {
         }
     }
 
+    public ApiResult<LugarResponse> obtener(long id) {
+        try {
+            Response<LugarResponse> respuesta = api.obtener(id).execute();
+            if (respuesta.isSuccessful()) {
+                return ApiResult.exito(respuesta.body());
+            }
+            return ApiResult.error(respuesta.code(), RespuestaError.mensaje(respuesta));
+        } catch (IOException e) {
+            return ApiResult.error(0, "No se pudo conectar con el servidor");
+        }
+    }
+
     public ApiResult<LugarResponse> editar(long id, LugarRequest request) {
         try {
             Response<LugarResponse> respuesta = api.editar(id, request).execute();

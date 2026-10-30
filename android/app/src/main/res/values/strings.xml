@@ -23,14 +23,11 @@
     <string name="password_corta">La contraseña debe tener al menos 8 caracteres</string>
 
     <!-- Map -->
-    <string name="mapa_titulo">Lugares cercanos</string>
     <string name="mapa_cerrar_sesion">Salir</string>
     <string name="mapa_sin_lugares">No hay lugares cerca todavía</string>
     <string name="mapa_permiso_denegado">Sin permiso de ubicación: mostrando Madrid</string>
     <string name="mapa_error_ubicacion">No se pudo obtener tu ubicación</string>
-    <string name="mapa_cargando">Cargando lugares…</string>
     <string name="mapa_sesion_expirada">Tu sesión ha caducado. Vuelve a iniciar sesión.</string>
-    <string name="mapa_permiso_ubicacion">WoofMap necesita tu ubicación para mostrar los lugares cercanos</string>
     <string name="mapa_anadir_lugar">Añadir lugar</string>
     <string name="mapa_filtrar">Filtrar</string>
     <string name="mapa_filtro_todos">Todos</string>
@@ -61,7 +58,6 @@
 
     <!-- Editar lugar -->
     <string name="editar_lugar_titulo">Editar lugar</string>
-    <string name="editar_lugar_nombre_actual">Editando: %s</string>
     <string name="editar_lugar_confirmar">Guardar</string>
 
     <!-- Eliminar lugar -->

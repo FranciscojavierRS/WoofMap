@@ -73,7 +73,7 @@ public class AuthRepositoryTest {
         assertFalse(resultado.esExito());
         assertEquals(401, resultado.codigo);
         assertEquals("Credenciales incorrectas", resultado.error);
-        verify(tokenStore, never()).guardarSesion(any(), any(), any());
+        verify(tokenStore, never()).guardarSesion(any(), any(), any(), any());
     }
 
     @Test

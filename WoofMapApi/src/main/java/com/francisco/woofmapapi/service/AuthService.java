@@ -110,17 +110,25 @@ public class AuthService {
 
     private void registrarFallo(String email) {
         Instant ahora = Instant.now();
+
+        // shortcut: límite en memoria por proceso; con varias instancias, usar Redis o limitar en el proxy.
+        // Nunca vaciamos el mapa entero: al llegar al tope solo purgamos lo caducado y, si sigue
+        // lleno, dejamos de registrar emails nuevos para no borrar límites vivos.
+        if (intentosFallidos.size() >= MAX_EMAILS_EN_MEMORIA) {
+            intentosFallidos.entrySet().removeIf(e ->
+                    e.getValue().inicio().plus(VENTANA_INTENTOS).isBefore(ahora));
+            if (intentosFallidos.size() >= MAX_EMAILS_EN_MEMORIA
+                    && !intentosFallidos.containsKey(email)) {
+                return;
+            }
+        }
+
         intentosFallidos.compute(email, (clave, actual) -> {
             if (actual == null || actual.inicio().plus(VENTANA_INTENTOS).isBefore(ahora)) {
                 return new IntentosLogin(ahora, 1);
             }
             return new IntentosLogin(actual.inicio(), actual.cantidad() + 1);
         });
-
-        // shortcut: límite en memoria por proceso; con varias instancias, usar Redis o limitar en el proxy.
-        if (intentosFallidos.size() > MAX_EMAILS_EN_MEMORIA) {
-            intentosFallidos.clear();
-        }
     }
 
     private record IntentosLogin(Instant inicio, int cantidad) {

@@ -26,6 +26,9 @@ public interface LugarApi {
     @POST("lugares")
     Call<LugarResponse> crear(@Body LugarRequest request);
 
+    @GET("lugares/{id}")
+    Call<LugarResponse> obtener(@Path("id") long id);
+
     @PUT("lugares/{id}")
     Call<LugarResponse> editar(
             @Path("id") long id,

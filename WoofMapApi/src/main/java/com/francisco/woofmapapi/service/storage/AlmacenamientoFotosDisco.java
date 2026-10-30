@@ -100,6 +100,40 @@ public class AlmacenamientoFotosDisco implements AlmacenamientoFotos {
             throw new InvalidFileException("Extension de archivo no permitida: " + extension
                     + ". Se aceptan: .jpg, .jpeg, .png, .webp");
         }
+
+        validarContenido(archivo);
+    }
+
+    // Comprobamos los magic bytes para no fiarnos del MIME ni de la extension del cliente.
+    private void validarContenido(MultipartFile archivo) {
+        byte[] cabecera = new byte[12];
+        int leidos = 0;
+        try (InputStream entrada = archivo.getInputStream()) {
+            while (leidos < cabecera.length) {
+                int n = entrada.read(cabecera, leidos, cabecera.length - leidos);
+                if (n == -1) {
+                    break;
+                }
+                leidos += n;
+            }
+        } catch (IOException e) {
+            throw new StorageException("No se pudo leer el archivo para validarlo", e);
+        }
+
+        boolean jpeg = leidos >= 3
+                && (cabecera[0] & 0xFF) == 0xFF
+                && (cabecera[1] & 0xFF) == 0xD8
+                && (cabecera[2] & 0xFF) == 0xFF;
+        boolean png = leidos >= 8
+                && (cabecera[0] & 0xFF) == 0x89
+                && cabecera[1] == 'P' && cabecera[2] == 'N' && cabecera[3] == 'G';
+        boolean webp = leidos >= 12
+                && cabecera[0] == 'R' && cabecera[1] == 'I' && cabecera[2] == 'F' && cabecera[3] == 'F'
+                && cabecera[8] == 'W' && cabecera[9] == 'E' && cabecera[10] == 'B' && cabecera[11] == 'P';
+
+        if (!jpeg && !png && !webp) {
+            throw new InvalidFileException("El archivo no es una imagen valida (JPEG, PNG o WebP)");
+        }
     }
 
     private String obtenerExtension(String nombreOriginal) {

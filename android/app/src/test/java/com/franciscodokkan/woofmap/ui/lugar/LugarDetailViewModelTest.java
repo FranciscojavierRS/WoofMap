@@ -67,6 +67,15 @@ public class LugarDetailViewModelTest {
     }
 
     @Test
+    public void cargarFotosConErrorExponeElMensaje() {
+        when(fotoRepo.listar(1L)).thenReturn(ApiResult.error(500, "Error interno"));
+
+        viewModel.cargarFotos(1L);
+
+        assertEquals("Error interno", valor(viewModel.getError()));
+    }
+
+    @Test
     public void eliminarLugarExitosoNotificaEliminado() {
         when(lugarRepo.eliminar(1L)).thenReturn(ApiResult.exito(null));
 

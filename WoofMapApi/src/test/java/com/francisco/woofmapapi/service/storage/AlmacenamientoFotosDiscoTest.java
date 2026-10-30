@@ -29,11 +29,12 @@ class AlmacenamientoFotosDiscoTest {
     @Test
     @DisplayName("Debe guardar un archivo JPEG valido y devolver la ruta publica /uploads/...")
     void guardar_conJpegValido_guardaArchivoYDevuelveRuta() throws IOException {
+        byte[] contenido = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 1, 2, 3};
         MockMultipartFile file = new MockMultipartFile(
                 "foto",
                 "perro.jpg",
                 "image/jpeg",
-                "contenido-de-prueba-imagen".getBytes()
+                contenido
         );
 
         String ruta = storageService.guardar(file);
@@ -44,23 +45,39 @@ class AlmacenamientoFotosDiscoTest {
         String nombreArchivo = ruta.replace("/uploads/", "");
         Path archivoEnDisco = tempDir.resolve(nombreArchivo);
         assertThat(Files.exists(archivoEnDisco)).isTrue();
-        assertThat(Files.readAllBytes(archivoEnDisco)).isEqualTo("contenido-de-prueba-imagen".getBytes());
+        assertThat(Files.readAllBytes(archivoEnDisco)).isEqualTo(contenido);
     }
 
     @Test
     @DisplayName("Debe guardar un archivo PNG valido")
     void guardar_conPngValido_guardaCorrectamente() {
+        byte[] contenido = new byte[]{(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0};
         MockMultipartFile file = new MockMultipartFile(
                 "foto",
                 "parque.png",
                 "image/png",
-                "datos-png".getBytes()
+                contenido
         );
 
         String ruta = storageService.guardar(file);
 
         assertThat(ruta).startsWith("/uploads/");
         assertThat(ruta).endsWith(".png");
+    }
+
+    @Test
+    @DisplayName("Debe lanzar InvalidFileException si el contenido no son bytes de imagen")
+    void guardar_contenidoNoImagen_lanzaInvalidFileException() {
+        MockMultipartFile file = new MockMultipartFile(
+                "foto",
+                "falsa.jpg",
+                "image/jpeg",
+                "no-es-una-imagen".getBytes()
+        );
+
+        assertThatThrownBy(() -> storageService.guardar(file))
+                .isInstanceOf(InvalidFileException.class)
+                .hasMessageContaining("no es una imagen valida");
     }
 
     @Test

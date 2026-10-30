@@ -59,20 +59,12 @@ public class TokenStore {
         editor.apply();
     }
 
-    public void guardarSesion(String token, String nombre, String email) {
-        guardarSesion(token, null, nombre, email);
-    }
-
     public String getToken() {
         return preferencias.getString(CLAVE_TOKEN, null);
     }
 
     public long getUsuarioId() {
         return preferencias.getLong(CLAVE_USUARIO_ID, -1L);
-    }
-
-    public String getNombre() {
-        return preferencias.getString(CLAVE_NOMBRE, null);
     }
 
     public boolean haySesion() {

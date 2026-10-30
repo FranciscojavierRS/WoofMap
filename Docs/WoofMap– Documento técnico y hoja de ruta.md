@@ -341,14 +341,14 @@ La planificación se divide en fases con tareas verificables. Cada fase termina 
 
 *Entregable: sistema estable y demostrable.*
 
-- [ ] Revisión de calidad del backend: cobertura, código muerto y cumplimiento de SOLID y KISS en cada módulo.
-- [ ] Revisar manejo de errores y mensajes al usuario (sin conexión, errores del servidor).
-- [ ] Añadir estados de carga y vistas vacías.
+- [X] Revisión de calidad del backend: cobertura, código muerto y cumplimiento de SOLID y KISS en cada módulo.
+- [X] Revisar manejo de errores y mensajes al usuario (sin conexión, errores del servidor).
+- [X] Añadir estados de carga y vistas vacías.
 - [ ] Probar en emulador y en al menos un dispositivo físico.
 - [ ] Configurar el túnel (Cloudflare Tunnel, ngrok o Tailscale) y probar la demo fuera de la red local.
 - [ ] Verificar que `docker compose up` levanta todo desde cero.
 - [ ] Realizar una copia de seguridad con `pg_dump` y probar la restauración.
-- [ ] Añadir datos de ejemplo para la demostración.
+- [X] Añadir datos de ejemplo para la demostración.
 
 ### Fase 7 · Documentación y entrega
 

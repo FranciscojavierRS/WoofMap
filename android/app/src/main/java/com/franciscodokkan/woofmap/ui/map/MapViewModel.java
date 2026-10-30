@@ -10,6 +10,7 @@ import com.franciscodokkan.woofmap.data.repository.LugarRepository;
 
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MapViewModel extends ViewModel {
@@ -39,7 +40,6 @@ public class MapViewModel extends ViewModel {
     public LiveData<Boolean> getCargando() { return cargando; }
     public LiveData<String> getError() { return error; }
     public LiveData<Boolean> getSesionExpirada() { return sesionExpirada; }
-    public LiveData<String> getCategoriaFiltro() { return categoriaFiltro; }
 
     public void cargarLugares(Double lat, Double lon) {
         ultimaLat = lat;
@@ -66,5 +66,12 @@ public class MapViewModel extends ViewModel {
                 error.postValue(resultado.error);
             }
         });
+    }
+
+    @Override
+    protected void onCleared() {
+        if (ejecutor instanceof ExecutorService) {
+            ((ExecutorService) ejecutor).shutdown();
+        }
     }
 }

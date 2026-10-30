@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!--
+        Permite tráfico HTTP en desarrollo local para 10.0.2.2 (emulador),
+        IPs locales de red (dispositivos físicos) y túneles (ngrok / Cloudflare).
+        En release no se aplica: Android bloquea el tráfico en claro por defecto.
+    -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

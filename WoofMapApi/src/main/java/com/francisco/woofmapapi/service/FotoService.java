@@ -13,6 +13,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
@@ -55,15 +57,32 @@ public class FotoService {
         try {
             Foto foto = new Foto(null, url, lugar, usuario, Instant.now());
             Foto guardada = fotoRepository.save(foto);
+
+            // Si el commit falla despues de guardar, limpiamos el archivo.
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCompletion(int status) {
+                        if (status != TransactionSynchronization.STATUS_COMMITTED) {
+                            eliminarIgnorandoErrores(url);
+                        }
+                    }
+                });
+            }
+
             return toResponse(guardada);
         } catch (RuntimeException e) {
             // Si la base de datos falla, no dejamos el archivo huerfano en el disco.
-            try {
-                almacenamientoFotos.eliminar(url);
-            } catch (RuntimeException ignored) {
-                // No ocultamos el error original si la limpieza tambien falla.
-            }
+            eliminarIgnorandoErrores(url);
             throw e;
+        }
+    }
+
+    private void eliminarIgnorandoErrores(String url) {
+        try {
+            almacenamientoFotos.eliminar(url);
+        } catch (RuntimeException ignored) {
+            // No ocultamos el error original si la limpieza tambien falla.
         }
     }
 

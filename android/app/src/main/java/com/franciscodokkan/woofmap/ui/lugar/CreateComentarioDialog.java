@@ -33,26 +33,32 @@ public class CreateComentarioDialog extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         binding = DialogComentarioBinding.inflate(LayoutInflater.from(requireContext()));
 
-        return new AlertDialog.Builder(requireContext())
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setTitle(R.string.comentario_titulo)
                 .setView(binding.getRoot())
-                .setPositiveButton(R.string.comentario_publicar, (d, w) -> {
-                    String texto = binding.campoTexto.getText() != null
-                            ? binding.campoTexto.getText().toString().trim() : "";
-                    int valoracion = (int) binding.ratingBar.getRating();
-                    if (texto.isEmpty()) {
-                        Toast.makeText(requireContext(), R.string.error_comentario_vacio, Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    if (valoracion == 0) {
-                        Toast.makeText(requireContext(), R.string.error_valoracion_obligatoria, Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    if (requireActivity() instanceof LugarDetailActivity activity) {
-                        activity.onComentarioCreado(texto, (short) valoracion);
-                    }
-                })
+                .setPositiveButton(R.string.comentario_publicar, null)
                 .setNegativeButton(android.R.string.cancel, null)
                 .create();
+
+        // AlertDialog cierra al pulsar cualquier boton; validamos antes de cerrar.
+        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String texto = binding.campoTexto.getText() != null
+                    ? binding.campoTexto.getText().toString().trim() : "";
+            int valoracion = (int) binding.ratingBar.getRating();
+            if (texto.isEmpty()) {
+                Toast.makeText(requireContext(), R.string.error_comentario_vacio, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (valoracion == 0) {
+                Toast.makeText(requireContext(), R.string.error_valoracion_obligatoria, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (requireActivity() instanceof LugarDetailActivity activity) {
+                activity.onComentarioCreado(texto, (short) valoracion);
+            }
+            dialog.dismiss();
+        }));
+
+        return dialog;
     }
 }

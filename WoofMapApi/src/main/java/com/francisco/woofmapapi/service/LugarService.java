@@ -2,6 +2,7 @@ package com.francisco.woofmapapi.service;
 
 import com.francisco.woofmapapi.dto.LugarRequest;
 import com.francisco.woofmapapi.dto.LugarResponse;
+import com.francisco.woofmapapi.entity.Foto;
 import com.francisco.woofmapapi.entity.Lugar;
 import com.francisco.woofmapapi.entity.Usuario;
 import com.francisco.woofmapapi.exception.ResourceNotFoundException;
@@ -12,11 +13,15 @@ import com.francisco.woofmapapi.repository.UsuarioRepository;
 import com.francisco.woofmapapi.service.storage.AlmacenamientoFotos;
 import com.francisco.woofmapapi.util.GeometryUtils;
 import org.locationtech.jts.geom.Point;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Instant;
 import java.util.List;
@@ -25,6 +30,8 @@ import java.util.Locale;
 @Service
 @Transactional
 public class LugarService {
+
+    private static final Logger log = LoggerFactory.getLogger(LugarService.class);
 
     private static final int LIMITE_LISTADO = 200;
     private static final double RADIO_MAX_METROS = 50_000.0;
@@ -112,7 +119,8 @@ public class LugarService {
                     .toList();
         }
 
-        // Límite duro para que una petición anónima no cargue la tabla entera.
+        // shortcut: sin lat/lon devolvemos los primeros 200 por id, no los mas cercanos;
+        // si la tabla crece, paginar y ordenar por fecha de creacion.
         Pageable limite = PageRequest.of(0, LIMITE_LISTADO);
         List<Lugar> lugares = (categoriaFiltro != null)
                 ? lugarRepository.findByCategoria(categoriaFiltro, limite)
@@ -148,11 +156,34 @@ public class LugarService {
             throw new AccessDeniedException("No tienes permisos para eliminar este lugar. Solo el creador puede eliminarlo.");
         }
 
-        // Borramos los archivos antes de la fila para no dejar huerfanos en el disco.
-        fotoRepository.findByLugarId(id)
-                .forEach(foto -> almacenamientoFotos.eliminar(foto.getUrl()));
+        // Borramos la fila primero y los archivos solo cuando la transaccion confirma.
+        List<String> urls = fotoRepository.findByLugarId(id).stream()
+                .map(Foto::getUrl)
+                .toList();
 
         lugarRepository.delete(lugar);
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    borrarArchivos(urls);
+                }
+            });
+        } else {
+            // Sin transaccion activa (llamadas directas o tests) borramos al momento.
+            borrarArchivos(urls);
+        }
+    }
+
+    private void borrarArchivos(List<String> urls) {
+        for (String url : urls) {
+            try {
+                almacenamientoFotos.eliminar(url);
+            } catch (RuntimeException e) {
+                log.warn("No se pudo eliminar el archivo de la foto: {}", url, e);
+            }
+        }
     }
 
     private String normalizarCategoria(String categoria) {

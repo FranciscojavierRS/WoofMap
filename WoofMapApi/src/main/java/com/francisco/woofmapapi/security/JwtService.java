@@ -33,7 +33,9 @@ public class JwtService {
             getSigningKey();
         } catch (RuntimeException e) {
             throw new IllegalStateException(
-                    "JWT_SECRET debe tener al menos 32 bytes. Genera uno con: openssl rand -base64 48", e);
+                    "JWT_SECRET debe tener al menos 32 bytes (actual: "
+                            + secretKey.getBytes(StandardCharsets.UTF_8).length
+                            + "). Genera uno con: openssl rand -base64 48", e);
         }
     }
 

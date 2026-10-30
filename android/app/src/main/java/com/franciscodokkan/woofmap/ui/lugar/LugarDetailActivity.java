@@ -26,6 +26,7 @@ import com.franciscodokkan.woofmap.data.repository.FotoRepository;
 import com.franciscodokkan.woofmap.data.repository.LugarRepository;
 import com.franciscodokkan.woofmap.databinding.ActivityLugarDetailBinding;
 import com.franciscodokkan.woofmap.databinding.DialogEditLugarBinding;
+import com.franciscodokkan.woofmap.ui.SimpleViewModelFactory;
 import com.franciscodokkan.woofmap.ui.adapter.ComentarioAdapter;
 import com.franciscodokkan.woofmap.ui.adapter.FotoAdapter;
 import com.franciscodokkan.woofmap.ui.auth.LoginActivity;
@@ -60,14 +61,14 @@ public class LugarDetailActivity extends AppCompatActivity {
     private final ActivityResultLauncher<PickVisualMediaRequest> pickerLauncher =
             registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
                 if (uri != null) {
-                    viewModel.subirFoto(lugarId, uri, getContentResolver());
+                    viewModel.subirFoto(lugarId, uri, getContentResolver(), getCacheDir());
                 }
             });
 
     private final ActivityResultLauncher<Uri> cameraLauncher =
             registerForActivityResult(new ActivityResultContracts.TakePicture(), exito -> {
                 if (Boolean.TRUE.equals(exito) && cameraTempUri != null) {
-                    viewModel.subirFoto(lugarId, cameraTempUri, getContentResolver());
+                    viewModel.subirFoto(lugarId, cameraTempUri, getContentResolver(), getCacheDir());
                 }
             });
 
@@ -100,8 +101,8 @@ public class LugarDetailActivity extends AppCompatActivity {
         LugarRepository lugarRepo = new LugarRepository(ApiClient.lugares(this));
         FotoRepository fotoRepo = new FotoRepository(ApiClient.fotos(this));
         ComentarioRepository comentarioRepo = new ComentarioRepository(ApiClient.comentarios(this));
-        viewModel = new ViewModelProvider(this,
-                new LugarDetailViewModelFactory(lugarRepo, fotoRepo, comentarioRepo))
+        viewModel = new ViewModelProvider(this, new SimpleViewModelFactory<>(
+                () -> new LugarDetailViewModel(lugarRepo, fotoRepo, comentarioRepo)))
                 .get(LugarDetailViewModel.class);
 
         // Populate initial static info
@@ -116,6 +117,7 @@ public class LugarDetailActivity extends AppCompatActivity {
         observarViewModel();
 
         // Load async data
+        viewModel.cargarLugar(lugarId);
         viewModel.cargarFotos(lugarId);
         viewModel.cargarComentarios(lugarId);
 
@@ -213,10 +215,14 @@ public class LugarDetailActivity extends AppCompatActivity {
 
     private void tomarFotoCamara() {
         try {
-            File photoFile = File.createTempFile("camera_foto_", ".jpg", getCacheDir());
+            File dir = new File(getCacheDir(), "images");
+            if (!dir.exists() && !dir.mkdirs()) {
+                throw new IOException("No se pudo crear el directorio de la cámara");
+            }
+            File photoFile = File.createTempFile("camera_foto_", ".jpg", dir);
             cameraTempUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", photoFile);
             cameraLauncher.launch(cameraTempUri);
-        } catch (IOException e) {
+        } catch (IOException | IllegalArgumentException e) {
             Toast.makeText(this, "Error al preparar la cámara", Toast.LENGTH_SHORT).show();
         }
     }

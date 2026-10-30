@@ -36,6 +36,8 @@ android/app/build/
 android/local.properties
 *.apk
 *.aab
+# El wrapper de Gradle es necesario para compilar; la regla *.jar lo ocultaria
+!android/gradle/wrapper/gradle-wrapper.jar
 
 # Uploads
 uploads/

@@ -10,6 +10,7 @@ import com.franciscodokkan.woofmap.data.remote.model.LugarResponse;
 import com.franciscodokkan.woofmap.data.repository.LugarRepository;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class CreateLugarViewModel extends ViewModel {
@@ -50,5 +51,12 @@ public class CreateLugarViewModel extends ViewModel {
                 error.postValue(resultado.error);
             }
         });
+    }
+
+    @Override
+    protected void onCleared() {
+        if (ejecutor instanceof ExecutorService) {
+            ((ExecutorService) ejecutor).shutdown();
+        }
     }
 }

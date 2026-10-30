@@ -14,6 +14,7 @@ import com.franciscodokkan.woofmap.data.local.TokenStore;
 import com.franciscodokkan.woofmap.data.remote.ApiClient;
 import com.franciscodokkan.woofmap.data.repository.LugarRepository;
 import com.franciscodokkan.woofmap.databinding.ActivityCreateLugarBinding;
+import com.franciscodokkan.woofmap.ui.SimpleViewModelFactory;
 import com.franciscodokkan.woofmap.ui.auth.LoginActivity;
 
 import org.maplibre.android.MapLibre;
@@ -27,6 +28,8 @@ public class CreateLugarActivity extends AppCompatActivity {
 
     public static final String RESULTADO_CREADO = "lugar_creado";
     private static final String ESTILO_MAPA = "https://tiles.openfreemap.org/styles/liberty";
+    private static final String ESTADO_PUNTO_LAT = "punto_lat";
+    private static final String ESTADO_PUNTO_LON = "punto_lon";
 
     private ActivityCreateLugarBinding binding;
     private CreateLugarViewModel viewModel;
@@ -47,8 +50,14 @@ public class CreateLugarActivity extends AppCompatActivity {
         }
 
         LugarRepository repo = new LugarRepository(ApiClient.lugares(this));
-        viewModel = new ViewModelProvider(this, new CreateLugarViewModelFactory(repo))
+        viewModel = new ViewModelProvider(this, new SimpleViewModelFactory<>(() -> new CreateLugarViewModel(repo)))
                 .get(CreateLugarViewModel.class);
+
+        if (savedInstanceState != null && savedInstanceState.containsKey(ESTADO_PUNTO_LAT)) {
+            puntoSeleccionado = new LatLng(
+                    savedInstanceState.getDouble(ESTADO_PUNTO_LAT),
+                    savedInstanceState.getDouble(ESTADO_PUNTO_LON));
+        }
 
         configurarCategorias();
         configurarMapa(savedInstanceState);
@@ -73,17 +82,21 @@ public class CreateLugarActivity extends AppCompatActivity {
                 estiloCargado = true;
                 // Restore marker if coming back from rotation
                 if (puntoSeleccionado != null) {
-                    actualizarMarcador(puntoSeleccionado);
+                    seleccionarPunto(puntoSeleccionado);
                 }
             });
             mapa.addOnMapClickListener(punto -> {
-                puntoSeleccionado = punto;
-                actualizarMarcador(punto);
-                binding.textoCoords.setText(getString(R.string.crear_lugar_coords,
-                        punto.getLatitude(), punto.getLongitude()));
+                seleccionarPunto(punto);
                 return true;
             });
         });
+    }
+
+    private void seleccionarPunto(LatLng punto) {
+        puntoSeleccionado = punto;
+        actualizarMarcador(punto);
+        binding.textoCoords.setText(getString(R.string.crear_lugar_coords,
+                punto.getLatitude(), punto.getLongitude()));
     }
 
     private void actualizarMarcador(LatLng punto) {
@@ -147,6 +160,13 @@ public class CreateLugarActivity extends AppCompatActivity {
     @Override protected void onPause() { binding.miniMapa.onPause(); super.onPause(); }
     @Override protected void onStop() { binding.miniMapa.onStop(); super.onStop(); }
     @Override protected void onDestroy() { binding.miniMapa.onDestroy(); super.onDestroy(); }
-    @Override protected void onSaveInstanceState(android.os.Bundle out) { super.onSaveInstanceState(out); binding.miniMapa.onSaveInstanceState(out); }
+    @Override protected void onSaveInstanceState(Bundle out) {
+        super.onSaveInstanceState(out);
+        binding.miniMapa.onSaveInstanceState(out);
+        if (puntoSeleccionado != null) {
+            out.putDouble(ESTADO_PUNTO_LAT, puntoSeleccionado.getLatitude());
+            out.putDouble(ESTADO_PUNTO_LON, puntoSeleccionado.getLongitude());
+        }
+    }
     @Override public void onLowMemory() { super.onLowMemory(); binding.miniMapa.onLowMemory(); }
 }
