@@ -26,6 +26,10 @@ public class LugarRepository {
         return ApiResult.lista(api.listar(lat, lon, radio, categoria));
     }
 
+    public ApiResult<List<LugarResponse>> listarTop(String categoria) {
+        return ApiResult.lista(api.top(categoria, 50));
+    }
+
     public ApiResult<LugarResponse> crear(LugarRequest request) {
         return ApiResult.ejecutar(api.crear(request));
     }

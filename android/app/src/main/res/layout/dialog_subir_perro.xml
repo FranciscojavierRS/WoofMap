@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.textfield.TextInputLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.WoofMap.TextInputLayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:hint="@string/perro_mes_nombre">
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/campoNombre"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:inputType="textCapWords"
+        android:maxLength="100"
+        android:textColor="?attr/colorOnSurface" />
+
+</com.google.android.material.textfield.TextInputLayout>

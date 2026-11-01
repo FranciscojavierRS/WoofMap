@@ -32,6 +32,10 @@ public final class ApiClient {
         return get(contexto).create(ComentarioApi.class);
     }
 
+    public static PerroApi perros(Context contexto) {
+        return get(contexto).create(PerroApi.class);
+    }
+
     private static synchronized Retrofit get(Context contexto) {
         if (retrofit == null) {
             OkHttpClient cliente = new OkHttpClient.Builder()

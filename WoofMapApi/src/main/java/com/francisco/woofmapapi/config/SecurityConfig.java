@@ -82,6 +82,9 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         // Consultas publicas de lugares y comentarios
                         .requestMatchers(HttpMethod.GET, "/lugares/**").permitAll()
+                        // El ranking de perros es publico; subir y votar requiere sesion
+                        .requestMatchers(HttpMethod.GET, "/perros/ranking").permitAll()
+                        .requestMatchers("/perros/**").authenticated()
                         // Creacion, edicion y borrado de lugares protegidos
                         .requestMatchers(HttpMethod.POST, "/lugares").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/lugares/**").authenticated()

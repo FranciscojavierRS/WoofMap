@@ -69,6 +69,18 @@ public class LugarController {
         return ResponseEntity.ok(lugarService.listarLugares(lat, lon, radio, categoria));
     }
 
+    @GetMapping("/top")
+    @Operation(summary = "Ranking de lugares", description = "Devuelve los lugares mejor valorados, opcionalmente filtrados por categoria.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Ranking obtenido")
+    })
+    public ResponseEntity<List<LugarResponse>> listarTopLugares(
+            @Parameter(description = "Filtrar por categoria (PARQUE, PLAYA, PIPICAN, etc.)") @RequestParam(required = false) String categoria,
+            @Parameter(description = "Numero maximo de lugares (por defecto 20)") @RequestParam(required = false) Integer limite
+    ) {
+        return ResponseEntity.ok(lugarService.listarTopLugares(categoria, limite));
+    }
+
     @PutMapping("/{id}")
     @Operation(summary = "Editar un lugar", description = "Actualiza los datos de un lugar existente (solo permitido al usuario creador).")
     @ApiResponses({

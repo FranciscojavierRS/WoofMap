@@ -4,6 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/woofmap_fondo"
     android:fillViewport="true">
 
     <LinearLayout
@@ -18,7 +19,7 @@
             android:layout_height="4dp"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="12dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="12dp"
             android:background="@drawable/bg_handle" />
 
         <!-- Cabecera: volver + nombre -->
@@ -40,8 +41,8 @@
                 android:focusable="true"
                 android:padding="8dp"
                 android:text="@string/detalle_volver"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textColor="?attr/colorOnSurface" />
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="@color/woofmap_text_primary" />
 
             <TextView
                 android:id="@+id/textoNombreCabecera"
@@ -51,15 +52,19 @@
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                android:textColor="?attr/colorOnSurface" />
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/woofmap_text_secondary" />
         </LinearLayout>
 
-        <!-- Carrusel de fotos -->
+        <!-- Carrusel de fotos con el boton de subir encima -->
         <FrameLayout
             android:id="@+id/contenedorFotos"
             android:layout_width="match_parent"
-            android:layout_height="300dp">
+            android:layout_height="260dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/bg_card"
+            android:clipToOutline="true">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerFotos"
@@ -74,14 +79,22 @@
                 android:layout_gravity="center"
                 android:text="@string/detalle_sin_fotos"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textColor="@color/woofmap_text_secondary"
                 android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/botonAnadirFoto"
+                style="@style/Widget.WoofMap.Button.Pill"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="12dp" />
 
             <TextView
                 android:id="@+id/textoNumFotos"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
+                android:layout_gravity="bottom|start"
                 android:layout_margin="12dp"
                 android:background="@drawable/bg_badge"
                 android:paddingStart="12dp"
@@ -110,109 +123,78 @@
             android:paddingEnd="16dp">
 
             <TextView
-                android:id="@+id/textoNombre"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                android:textColor="?attr/colorOnSurface"
-                android:textStyle="bold" />
-
-            <TextView
                 android:id="@+id/textoCategoria"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textColor="?attr/colorOnSurfaceVariant" />
+                android:textAppearance="@style/TextAppearance.WoofMap.Overline" />
+
+            <TextView
+                android:id="@+id/textoNombre"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="serif"
+                android:textAppearance="@style/TextAppearance.WoofMap.Titulo"
+                android:textColor="@color/woofmap_text_primary" />
 
             <TextView
                 android:id="@+id/textoValoracion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textColor="?attr/colorOnSurfaceVariant" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/botonAnadirFoto"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="16dp"
-                app:cornerRadius="28dp" />
-
-            <com.google.android.material.divider.MaterialDivider
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="@string/detalle_valorar"
-                android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                android:textColor="?attr/colorOnSurface" />
+                android:layout_marginTop="4dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/woofmap_text_secondary" />
 
             <LinearLayout
                 android:id="@+id/estrellas"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="6dp"
                 android:orientation="horizontal">
 
                 <ImageView
                     android:layout_width="0dp"
-                    android:layout_height="32dp"
+                    android:layout_height="24dp"
                     android:layout_weight="1"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_estrella" />
 
                 <ImageView
                     android:layout_width="0dp"
-                    android:layout_height="32dp"
+                    android:layout_height="24dp"
                     android:layout_weight="1"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_estrella" />
 
                 <ImageView
                     android:layout_width="0dp"
-                    android:layout_height="32dp"
+                    android:layout_height="24dp"
                     android:layout_weight="1"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_estrella" />
 
                 <ImageView
                     android:layout_width="0dp"
-                    android:layout_height="32dp"
+                    android:layout_height="24dp"
                     android:layout_weight="1"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_estrella" />
 
                 <ImageView
                     android:layout_width="0dp"
-                    android:layout_height="32dp"
+                    android:layout_height="24dp"
                     android:layout_weight="1"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_estrella" />
             </LinearLayout>
 
             <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/detalle_descripcion"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textColor="?attr/colorOnSurface"
-                android:textStyle="bold" />
-
-            <TextView
                 android:id="@+id/textoDescripcion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="12dp"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textColor="?attr/colorOnSurface" />
+                android:textColor="@color/woofmap_text_primary" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -249,9 +231,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
+                android:text="@string/detalle_comunidad"
+                android:textAppearance="@style/TextAppearance.WoofMap.Overline" />
+
+            <TextView
+                android:id="@+id/textoComentariosTitulo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="serif"
                 android:text="@string/detalle_comentarios_titulo"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textColor="?attr/colorOnSurface"
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                android:textColor="@color/woofmap_text_primary"
                 android:textStyle="bold" />
 
             <TextView
@@ -261,7 +252,7 @@
                 android:layout_marginTop="4dp"
                 android:text="@string/detalle_sin_comentarios"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textColor="@color/woofmap_text_secondary"
                 android:visibility="gone" />
 
             <androidx.recyclerview.widget.RecyclerView
@@ -273,10 +264,10 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/botonAnadirComentario"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="8dp"
                 android:text="@string/detalle_anadir_comentario" />
 
             <com.google.android.material.progressindicator.LinearProgressIndicator

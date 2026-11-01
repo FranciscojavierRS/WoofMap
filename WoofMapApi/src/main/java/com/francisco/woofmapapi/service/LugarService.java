@@ -35,6 +35,8 @@ public class LugarService {
 
     // shortcut: todos los listados se cortan en 200 filas sin paginar.
     private static final int LIMITE_LISTADO = 200;
+    private static final int LIMITE_TOP = 50;
+    private static final int TOP_POR_DEFECTO = 20;
     private static final double RADIO_MAX_METROS = 50_000.0;
 
     private final LugarRepository lugarRepository;
@@ -129,6 +131,20 @@ public class LugarService {
 
         return lugares.stream()
                 .map(lugar -> toResponse(lugar, null))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<LugarResponse> listarTopLugares(String categoria, Integer limite) {
+        int max = (limite == null || limite <= 0) ? TOP_POR_DEFECTO : Math.min(limite, LIMITE_TOP);
+        String categoriaFiltro = normalizarCategoria(categoria);
+
+        return lugarRepository.findTopLugares(categoriaFiltro, PageRequest.of(0, max)).stream()
+                .map(fila -> toResponse(
+                        (Lugar) fila[0],
+                        null,
+                        fila[1] != null ? ((Number) fila[1]).doubleValue() : null,
+                        ((Number) fila[2]).longValue()))
                 .toList();
     }
 

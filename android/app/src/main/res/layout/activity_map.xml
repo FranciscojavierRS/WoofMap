@@ -1,116 +1,353 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface"
-    android:fitsSystemWindows="true"
-    android:orientation="vertical">
+    android:background="@color/woofmap_fondo"
+    android:fitsSystemWindows="true">
 
-    <!-- Cabecera -->
-    <TextView
+    <org.maplibre.android.maps.MapView
+        android:id="@+id/mapa"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Barra superior flotante: menu, buscador y perfil -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:orientation="vertical"
         android:paddingStart="16dp"
         android:paddingTop="12dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="12dp"
-        android:text="@string/app_name"
-        android:textAppearance="?attr/textAppearanceTitleLarge"
-        android:textColor="?attr/colorOnSurface"
-        android:textStyle="bold" />
+        android:paddingEnd="16dp">
 
-    <!-- Mapa con el boton de anadir lugar flotando encima -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <org.maplibre.android.maps.MapView
-            android:id="@+id/mapa"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/botonCrearLugar"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="16dp"
-            android:text="@string/mapa_anadir_lugar"
-            app:cornerRadius="28dp" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <com.google.android.material.progressindicator.CircularProgressIndicator
-            android:id="@+id/progreso"
-            android:layout_width="wrap_content"
+            <ImageButton
+                android:id="@+id/botonMenu"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_circulo"
+                android:contentDescription="@string/menu_abrir"
+                android:src="@drawable/ic_mas"
+                app:tint="@color/woofmap_text_primary" />
+
+            <EditText
+                android:id="@+id/busqueda"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_busqueda"
+                android:drawableStart="@drawable/ic_buscar"
+                android:drawablePadding="8dp"
+                android:drawableTint="@color/woofmap_text_secondary"
+                android:hint="@string/mapa_buscar"
+                android:importantForAutofill="no"
+                android:inputType="text"
+                android:maxLines="1"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:textColor="@color/woofmap_text_primary"
+                android:textColorHint="@color/woofmap_text_secondary"
+                android:textSize="14sp" />
+
+            <ImageButton
+                android:id="@+id/botonPerfil"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_circulo"
+                android:contentDescription="@string/mapa_perfil"
+                android:src="@drawable/ic_perfil"
+                app:tint="@color/woofmap_text_primary" />
+        </LinearLayout>
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:indeterminate="true"
-            android:visibility="gone" />
+            android:layout_marginTop="10dp"
+            android:scrollbars="none">
 
-        <TextView
-            android:id="@+id/textoVacio"
-            android:layout_width="wrap_content"
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipsCategorias"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:chipSpacingHorizontal="8dp"
+                app:selectionRequired="true"
+                app:singleLine="true"
+                app:singleSelection="true" />
+        </HorizontalScrollView>
+    </LinearLayout>
+
+    <!-- Mi ubicacion -->
+    <ImageButton
+        android:id="@+id/botonUbicacion"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="end|center_vertical"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_circulo"
+        android:contentDescription="@string/mapa_ubicacion"
+        android:elevation="4dp"
+        android:src="@drawable/ic_ubicacion"
+        app:tint="@color/woofmap_primary" />
+
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/progreso"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/textoVacio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_busqueda"
+        android:padding="16dp"
+        android:text="@string/mapa_sin_lugares"
+        android:textColor="@color/woofmap_text_secondary"
+        android:visibility="gone" />
+
+    <!-- Tarjeta del lugar seleccionado -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/tarjetaLugar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="88dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="@color/woofmap_surface"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="6dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="@color/woofmap_superficie"
-            android:padding="16dp"
-            android:text="@string/mapa_sin_lugares"
-            android:textColor="?attr/colorOnSurface"
-            android:visibility="gone" />
-    </FrameLayout>
+            android:orientation="vertical"
+            android:padding="14dp">
 
-    <!-- Menu inferior: filtro, perfil y salir -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_tag"
+                    android:contentDescription="@null"
+                    android:padding="9dp"
+                    android:src="@drawable/ic_mapa"
+                    app:tint="@color/woofmap_primary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/textoTarjetaCategoria"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textAppearance="@style/TextAppearance.WoofMap.Overline" />
+
+                    <TextView
+                        android:id="@+id/textoTarjetaNombre"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="serif"
+                        android:maxLines="1"
+                        android:textColor="@color/woofmap_text_primary"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/textoTarjetaValoracion"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/woofmap_text_secondary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/botonCerrarTarjeta"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_circulo"
+                    android:contentDescription="@string/mapa_cerrar_tarjeta"
+                    android:src="@drawable/ic_cerrar"
+                    app:tint="@color/woofmap_text_secondary" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/botonVerDetalle"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/mapa_ver_detalle" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Barra inferior -->
     <LinearLayout
         android:id="@+id/barraInferior"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorSurface"
-        android:elevation="8dp"
+        android:layout_gravity="bottom"
+        android:background="@color/woofmap_surface"
+        android:elevation="12dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="12dp"
+        android:paddingStart="6dp"
         android:paddingTop="8dp"
-        android:paddingEnd="12dp"
+        android:paddingEnd="6dp"
         android:paddingBottom="8dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/botonFiltro"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:maxWidth="220dp"
-            android:text="@string/mapa_filtro_todos"
-            app:icon="@drawable/ic_filtro"
-            app:iconGravity="textStart"
-            app:iconTint="?attr/colorPrimary" />
-
-        <Space
+        <LinearLayout
+            android:id="@+id/botonMapa"
             android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
-
-        <ImageButton
-            android:id="@+id/botonPerfil"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/mapa_perfil"
-            android:src="@drawable/ic_perfil"
-            app:tint="?attr/colorOnSurface" />
+            android:clickable="true"
+            android:contentDescription="@string/mapa_tab_mapa"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
 
-        <ImageButton
-            android:id="@+id/botonSalir"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_mapa"
+                app:tint="@color/woofmap_primary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/mapa_tab_mapa"
+                android:textColor="@color/woofmap_primary"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/botonExplorar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="@string/mapa_explorar"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_buscar"
+                app:tint="@color/woofmap_text_secondary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/mapa_explorar"
+                android:textColor="@color/woofmap_text_secondary"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/botonCrearLugar"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:layout_marginStart="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/mapa_cerrar_sesion"
-            android:src="@drawable/ic_salir"
-            app:tint="?attr/colorOnSurface" />
-    </LinearLayout>
+            android:layout_marginEnd="8dp"
+            android:contentDescription="@string/mapa_anadir_lugar"
+            android:src="@drawable/ic_add"
+            app:backgroundTint="@color/woofmap_primary"
+            app:borderWidth="0dp"
+            app:elevation="6dp"
+            app:tint="@color/white" />
 
-</LinearLayout>
+        <LinearLayout
+            android:id="@+id/botonFavoritos"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="@string/mapa_favoritos"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_favorito"
+                app:tint="@color/woofmap_text_secondary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/mapa_favoritos"
+                android:textColor="@color/woofmap_text_secondary"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/botonMas"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="@string/mapa_mas"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_mas"
+                app:tint="@color/woofmap_text_secondary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/mapa_mas"
+                android:textColor="@color/woofmap_text_secondary"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

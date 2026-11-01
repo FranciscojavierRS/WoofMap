@@ -1,13 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="woofmap_primary">#FF6F43</color>
+    <!-- Paleta de los mockups: crema, blanco y verde bosque -->
+    <color name="woofmap_primary">#2F5D3A</color>
+    <color name="woofmap_primary_dark">#24482D</color>
+    <color name="woofmap_secondary">#8FAE7E</color>
+    <color name="woofmap_secondary_dark">#5E7F52</color>
+    <color name="woofmap_background">#F6F4EE</color>
+    <color name="woofmap_surface">#FFFFFF</color>
+    <color name="woofmap_surface_variant">#EFEDE4</color>
+    <color name="woofmap_borde">#E2DFD4</color>
+    <color name="woofmap_text_primary">#1E2A22</color>
+    <color name="woofmap_text_secondary">#6B7568</color>
+    <color name="woofmap_lavanda">#2F5D3A</color>
+    <color name="woofmap_sobre_lavanda">#FFFFFF</color>
+    <color name="woofmap_fondo">#F6F4EE</color>
+    <color name="woofmap_superficie">#FFFFFF</color>
+    <color name="woofmap_texto_secundario">#6B7568</color>
+    <color name="woofmap_tag_fondo">#EDF1E4</color>
+    <color name="woofmap_tag_texto">#4B5C3C</color>
+    <color name="woofmap_verde_suave">#E4EBDC</color>
+    <color name="woofmap_estrella">#C9A227</color>
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
-
-    <!-- Tema oscuro del mapa y del detalle -->
-    <color name="woofmap_lavanda">#FFD0BCFF</color>
-    <color name="woofmap_sobre_lavanda">#FF381E72</color>
-    <color name="woofmap_fondo">#FF15141A</color>
-    <color name="woofmap_superficie">#FF1B1A22</color>
-    <color name="woofmap_texto_secundario">#FFB9B7C4</color>
 </resources>

@@ -30,13 +30,24 @@
 
         <activity
             android:name=".ui.map.MapActivity"
-            android:exported="false"
-            android:theme="@style/Theme.WoofMap.Oscuro" />
+            android:exported="false" />
 
         <activity
             android:name=".ui.lugar.CreateLugarActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.top.TopZonasActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.perro.PerroMesActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.perro.ValorarPerrosActivity"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

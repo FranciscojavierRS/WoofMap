@@ -5,6 +5,8 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.View;
 import android.widget.PopupMenu;
@@ -29,8 +31,12 @@ import com.franciscodokkan.woofmap.ui.SimpleViewModelFactory;
 import com.franciscodokkan.woofmap.ui.auth.LoginActivity;
 import com.franciscodokkan.woofmap.ui.lugar.CreateLugarActivity;
 import com.franciscodokkan.woofmap.ui.lugar.LugarDetailSheet;
+import com.franciscodokkan.woofmap.ui.perro.PerroMesActivity;
+import com.franciscodokkan.woofmap.ui.perro.ValorarPerrosActivity;
+import com.franciscodokkan.woofmap.ui.top.TopZonasActivity;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.material.chip.Chip;
 
 import org.maplibre.android.MapLibre;
 import org.maplibre.android.annotations.Marker;
@@ -45,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class MapActivity extends AppCompatActivity {
@@ -62,6 +69,8 @@ public class MapActivity extends AppCompatActivity {
     private boolean datosCargados;
     private List<LugarResponse> lugares = Collections.emptyList();
     private final Map<Marker, LugarResponse> marcadores = new HashMap<>();
+    private LugarResponse lugarSeleccionado;
+    private String filtroTexto = "";
 
     private final ActivityResultLauncher<Intent> createLugarLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -87,11 +96,25 @@ public class MapActivity extends AppCompatActivity {
                 .get(MapViewModel.class);
 
         observarViewModel();
-        configurarFiltroCategoria();
-        binding.botonSalir.setOnClickListener(v -> cerrarSesion());
+        configurarChips();
+        configurarBusqueda();
         binding.botonPerfil.setOnClickListener(v -> Toast.makeText(
                 this, R.string.mapa_perfil_no_disponible, Toast.LENGTH_SHORT).show());
         binding.botonCrearLugar.setOnClickListener(v -> abrirCrearLugar());
+        binding.botonMenu.setOnClickListener(this::mostrarMenu);
+        binding.botonMas.setOnClickListener(this::mostrarMenu);
+        binding.botonUbicacion.setOnClickListener(v -> obtenerUbicacion());
+        binding.botonMapa.setOnClickListener(v -> binding.tarjetaLugar.setVisibility(View.GONE));
+        binding.botonExplorar.setOnClickListener(v ->
+                startActivity(new Intent(this, TopZonasActivity.class)));
+        binding.botonFavoritos.setOnClickListener(v -> Toast.makeText(
+                this, R.string.mapa_favoritos_no_disponible, Toast.LENGTH_SHORT).show());
+        binding.botonCerrarTarjeta.setOnClickListener(v -> binding.tarjetaLugar.setVisibility(View.GONE));
+        binding.botonVerDetalle.setOnClickListener(v -> {
+            if (lugarSeleccionado != null) {
+                abrirDetalleLugar(lugarSeleccionado);
+            }
+        });
         getSupportFragmentManager().setFragmentResultListener(
                 LugarDetailSheet.RESULTADO_CAMBIO, this, (clave, resultado) -> viewModel.recargar());
 
@@ -99,32 +122,67 @@ public class MapActivity extends AppCompatActivity {
         pedirUbicacion();
     }
 
-    private void configurarFiltroCategoria() {
-        String[] categoriasArray = getResources().getStringArray(R.array.categorias_lugar);
+    private void configurarChips() {
+        String todos = getString(R.string.mapa_filtro_todos);
         List<String> opciones = new ArrayList<>();
-        opciones.add(getString(R.string.mapa_filtro_todos));
-        Collections.addAll(opciones, categoriasArray);
+        opciones.add(todos);
+        Collections.addAll(opciones, getResources().getStringArray(R.array.categorias_lugar));
 
-        binding.botonFiltro.setText(getString(R.string.mapa_filtro_todos));
-        binding.botonFiltro.setOnClickListener(v -> {
-            PopupMenu menu = new PopupMenu(this, v);
-            for (int i = 0; i < opciones.size(); i++) {
-                menu.getMenu().add(Menu.NONE, i, i, opciones.get(i));
-            }
-            menu.setOnMenuItemClickListener(item -> {
-                String seleccion = opciones.get(item.getItemId());
-                binding.botonFiltro.setText(seleccion);
-                viewModel.setCategoria(
-                        getString(R.string.mapa_filtro_todos).equalsIgnoreCase(seleccion) ? null : seleccion);
-                return true;
+        for (String opcion : opciones) {
+            Chip chip = (Chip) getLayoutInflater().inflate(
+                    R.layout.item_chip_categoria, binding.chipsCategorias, false);
+            chip.setText(opcion);
+            chip.setId(View.generateViewId());
+            binding.chipsCategorias.addView(chip);
+            chip.setChecked(todos.equals(opcion));
+            chip.setOnCheckedChangeListener((boton, marcado) -> {
+                if (marcado) {
+                    viewModel.setCategoria(todos.equals(opcion) ? null : opcion);
+                }
             });
-            menu.show();
+        }
+    }
+
+    private void configurarBusqueda() {
+        binding.busqueda.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filtroTexto = s.toString().trim().toLowerCase(Locale.getDefault());
+                pintarLugares();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
         });
     }
 
     private void abrirCrearLugar() {
         Intent intent = new Intent(this, CreateLugarActivity.class);
         createLugarLauncher.launch(intent);
+    }
+
+    private void mostrarMenu(View ancla) {
+        PopupMenu menu = new PopupMenu(this, ancla);
+        menu.getMenu().add(Menu.NONE, 2, 2, R.string.menu_perro_mes);
+        menu.getMenu().add(Menu.NONE, 3, 3, R.string.menu_valorar_perros);
+        menu.getMenu().add(Menu.NONE, 4, 4, R.string.menu_cerrar_sesion);
+        menu.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case 2 -> startActivity(new Intent(this, PerroMesActivity.class));
+                case 3 -> startActivity(new Intent(this, ValorarPerrosActivity.class));
+                case 4 -> cerrarSesion();
+                default -> {
+                    return false;
+                }
+            }
+            return true;
+        });
+        menu.show();
     }
 
     private void configurarMapa() {
@@ -140,11 +198,31 @@ public class MapActivity extends AppCompatActivity {
             mapa.setOnMarkerClickListener(marker -> {
                 LugarResponse seleccionado = marcadores.get(marker);
                 if (seleccionado != null) {
-                    abrirDetalleLugar(seleccionado);
+                    mostrarTarjeta(seleccionado);
                 }
                 return true;
             });
+            mapa.addOnMapClickListener(punto -> {
+                binding.tarjetaLugar.setVisibility(View.GONE);
+                return false;
+            });
         });
+    }
+
+    private void mostrarTarjeta(LugarResponse lugar) {
+        lugarSeleccionado = lugar;
+        binding.tarjetaLugar.setVisibility(View.VISIBLE);
+        binding.textoTarjetaCategoria.setText(lugar.categoria != null
+                ? lugar.categoria : getString(R.string.top_zonas_sin_categoria));
+        binding.textoTarjetaNombre.setText(lugar.nombre);
+
+        long total = lugar.totalComentarios != null ? lugar.totalComentarios : 0;
+        if (total > 0 && lugar.valoracionMedia != null) {
+            binding.textoTarjetaValoracion.setText(getResources().getQuantityString(
+                    R.plurals.detalle_valoraciones, (int) total, lugar.valoracionMedia, total));
+        } else {
+            binding.textoTarjetaValoracion.setText(R.string.detalle_sin_valoraciones);
+        }
     }
 
     private void abrirDetalleLugar(LugarResponse lugar) {
@@ -181,8 +259,13 @@ public class MapActivity extends AppCompatActivity {
         }
         mapa.clear();
         marcadores.clear();
+        int pintados = 0;
         for (LugarResponse lugar : lugares) {
             if (lugar.lat == null || lugar.lon == null) {
+                continue;
+            }
+            if (!filtroTexto.isEmpty() && (lugar.nombre == null
+                    || !lugar.nombre.toLowerCase(Locale.getDefault()).contains(filtroTexto))) {
                 continue;
             }
             Marker marker = mapa.addMarker(new MarkerOptions()
@@ -190,9 +273,10 @@ public class MapActivity extends AppCompatActivity {
                     .title(lugar.nombre)
                     .snippet(lugar.categoria));
             marcadores.put(marker, lugar);
+            pintados++;
         }
         binding.textoVacio.setVisibility(
-                datosCargados && lugares.isEmpty()
+                datosCargados && pintados == 0
                         && !Boolean.TRUE.equals(viewModel.getCargando().getValue())
                         ? View.VISIBLE : View.GONE);
     }

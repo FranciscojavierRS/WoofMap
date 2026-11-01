@@ -313,6 +313,21 @@ class LugarServiceTest {
     }
 
     @Test
+    @DisplayName("Debe devolver el ranking de lugares por valoracion media")
+    void debeListarTopLugares() {
+        when(lugarRepository.findTopLugares(isNull(), any(Pageable.class)))
+                .thenReturn(java.util.Collections.singletonList(new Object[]{lugarMock, 4.5, 3L}));
+
+        List<LugarResponse> result = lugarService.listarTopLugares(null, null);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).valoracionMedia()).isEqualTo(4.5);
+        assertThat(result.get(0).totalComentarios()).isEqualTo(3L);
+        verify(lugarRepository).findTopLugares(isNull(),
+                argThat((Pageable p) -> p.getPageSize() == 20));
+    }
+
+    @Test
     @DisplayName("Debe lanzar ResourceNotFoundException al intentar eliminar un lugar inexistente")
     void debeLanzarExcepcionAlEliminarInexistente() {
         when(lugarRepository.findById(999L)).thenReturn(Optional.empty());

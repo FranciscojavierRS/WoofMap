@@ -16,6 +16,17 @@ public interface LugarRepository extends JpaRepository<Lugar, Long> {
 
     List<Lugar> findAllByOrderByIdAsc(Pageable pageable);
 
+    // Sin GROUP BY a proposito: agrupar por la entidad incluiria la columna geography.
+    @Query("""
+            SELECT l,
+                   (SELECT AVG(CAST(c.valoracion AS double)) FROM Comentario c WHERE c.lugar = l) AS media,
+                   (SELECT COUNT(c) FROM Comentario c WHERE c.lugar = l) AS total
+            FROM Lugar l
+            WHERE (:categoria IS NULL OR l.categoria = :categoria)
+            ORDER BY media DESC NULLS LAST, total DESC, l.id ASC
+            """)
+    List<Object[]> findTopLugares(@Param("categoria") String categoria, Pageable pageable);
+
     @Query(value = """
             SELECT l.* FROM lugar l
             WHERE ST_DWithin(l.ubicacion, ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography, :radio)

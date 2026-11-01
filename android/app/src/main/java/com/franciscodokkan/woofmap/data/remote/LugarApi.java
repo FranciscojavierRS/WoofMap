@@ -23,6 +23,11 @@ public interface LugarApi {
             @Query("radio") Double radio,
             @Query("categoria") String categoria);
 
+    @GET("lugares/top")
+    Call<List<LugarResponse>> top(
+            @Query("categoria") String categoria,
+            @Query("limite") Integer limite);
+
     @POST("lugares")
     Call<LugarResponse> crear(@Body LugarRequest request);
 

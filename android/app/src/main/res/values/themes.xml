@@ -1,19 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.WoofMap" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.WoofMap" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/woofmap_primary</item>
+        <item name="colorPrimaryVariant">@color/woofmap_primary_dark</item>
         <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/woofmap_secondary</item>
+        <item name="colorOnSecondary">@color/woofmap_text_primary</item>
+        <item name="colorSurface">@color/woofmap_surface</item>
+        <item name="colorOnSurface">@color/woofmap_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/woofmap_text_secondary</item>
+        <item name="colorOutline">@color/woofmap_borde</item>
+        <item name="android:colorBackground">@color/woofmap_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/woofmap_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="materialButtonStyle">@style/Widget.WoofMap.Button</item>
+        <item name="textInputStyle">@style/Widget.WoofMap.TextInputLayout</item>
     </style>
 
-    <!-- Mapa y detalle de lugar: fondo oscuro con acento lavanda, como en los mockups. -->
-    <style name="Theme.WoofMap.Oscuro" parent="Theme.Material3.Dark.NoActionBar">
-        <item name="colorPrimary">@color/woofmap_lavanda</item>
-        <item name="colorOnPrimary">@color/woofmap_sobre_lavanda</item>
-        <item name="colorPrimaryContainer">@color/woofmap_lavanda</item>
-        <item name="colorOnPrimaryContainer">@color/woofmap_sobre_lavanda</item>
-        <item name="colorSurface">@color/woofmap_fondo</item>
-        <item name="colorSurfaceContainerLow">@color/woofmap_superficie</item>
-        <item name="android:colorBackground">@color/woofmap_fondo</item>
+    <!-- Titulos con serif, como en los mockups -->
+    <style name="TextAppearance.WoofMap.Titulo" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:fontFamily">serif</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/woofmap_text_primary</item>
+    </style>
+
+    <style name="TextAppearance.WoofMap.Overline" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.12</item>
+        <item name="android:textColor">@color/woofmap_text_secondary</item>
+    </style>
+
+    <style name="Widget.WoofMap.Button" parent="Widget.Material3.Button">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="cornerRadius">14dp</item>
+        <item name="backgroundTint">@color/woofmap_primary</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <!-- Boton claro tipo "Subir foto" sobre la foto -->
+    <style name="Widget.WoofMap.Button.Pill" parent="Widget.Material3.Button">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:minHeight">40dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="backgroundTint">@color/woofmap_surface</item>
+        <item name="android:textColor">@color/woofmap_text_primary</item>
+        <item name="strokeColor">@color/woofmap_borde</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <style name="Widget.WoofMap.Chip" parent="Widget.Material3.Chip.Filter">
+        <item name="chipBackgroundColor">@color/chip_fondo</item>
+        <item name="android:textColor">@color/chip_texto</item>
+        <item name="chipStrokeColor">@color/woofmap_borde</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipCornerRadius">20dp</item>
+        <item name="checkedIconVisible">false</item>
+        <item name="android:textSize">13sp</item>
+        <item name="chipMinHeight">36dp</item>
+    </style>
+
+    <style name="Widget.WoofMap.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundMode">outline</item>
+        <item name="boxBackgroundColor">@color/woofmap_surface</item>
+        <item name="boxStrokeColor">@color/woofmap_borde</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxCornerRadiusTopStart">14dp</item>
+        <item name="boxCornerRadiusTopEnd">14dp</item>
+        <item name="boxCornerRadiusBottomStart">14dp</item>
+        <item name="boxCornerRadiusBottomEnd">14dp</item>
+        <item name="android:textColorHint">@color/woofmap_text_secondary</item>
     </style>
 </resources>

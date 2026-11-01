@@ -32,16 +32,28 @@
     <string name="mapa_sesion_expirada">Tu sesión ha caducado. Vuelve a iniciar sesión.</string>
     <string name="mapa_anadir_lugar">Añadir lugar</string>
     <string name="mapa_filtro_todos">Todos</string>
+    <string name="mapa_buscar">Buscar lugares o barrios</string>
+    <string name="mapa_ubicacion">Mi ubicación</string>
+    <string name="mapa_ver_detalle">Ver fotos y comentarios</string>
+    <string name="mapa_cerrar_tarjeta">Cerrar</string>
+    <string name="mapa_tab_mapa">Mapa</string>
+    <string name="mapa_explorar">Explorar</string>
+    <string name="mapa_favoritos">Favoritos</string>
+    <string name="mapa_mas">Más</string>
+    <string name="mapa_favoritos_no_disponible">Los favoritos todavía no están disponibles</string>
+    <string name="menu_cerrar_sesion">Cerrar sesión</string>
 
     <!-- Crear lugar -->
-    <string name="crear_lugar_titulo">Nuevo lugar</string>
+    <string name="crear_lugar_overline">Comparte con la comunidad</string>
+    <string name="crear_lugar_titulo">Añadir un lugar</string>
     <string name="crear_lugar_nombre">Nombre del lugar</string>
-    <string name="crear_lugar_descripcion">Descripción (opcional)</string>
-    <string name="crear_lugar_categoria">Categoría</string>
+    <string name="crear_lugar_descripcion">Un detalle útil (opcional)</string>
+    <string name="crear_lugar_categoria">Tipo</string>
+    <string name="crear_lugar_ubicacion">Ubicación del marcador</string>
     <string name="crear_lugar_instruccion_mapa">Toca en el mapa para marcar la ubicación</string>
     <string name="crear_lugar_sin_punto">Sin punto seleccionado</string>
-    <string name="crear_lugar_coords">📍 %.5f, %.5f</string>
-    <string name="crear_lugar_boton">Crear lugar</string>
+    <string name="crear_lugar_coords">📍 %1$.5f, %2$.5f</string>
+    <string name="crear_lugar_boton">Publicar en el mapa</string>
 
     <!-- Detalle de lugar -->
     <string name="detalle_volver">‹ Volver</string>
@@ -52,10 +64,12 @@
     <string name="detalle_valorar">Valorar este lugar</string>
     <string name="detalle_descripcion">Descripción</string>
     <string name="detalle_sin_fotos">Aún no hay fotos</string>
-    <string name="detalle_anadir_fotos">Añadir fotos (%1$d/%2$d)</string>
+    <string name="detalle_anadir_fotos">Subir foto (%1$d/%2$d)</string>
     <string name="detalle_comentarios_titulo">Comentarios</string>
+    <string name="detalle_comentarios_con_total">Comentarios (%d)</string>
+    <string name="detalle_comunidad">Comunidad</string>
     <string name="detalle_sin_comentarios">Aún no hay comentarios</string>
-    <string name="detalle_anadir_comentario">Añadir comentario</string>
+    <string name="detalle_anadir_comentario">Escribir un comentario</string>
     <string name="detalle_editar">Editar</string>
     <string name="detalle_eliminar">Eliminar</string>
 
@@ -101,4 +115,46 @@
     <string name="foto_origen_titulo">Añadir fotografía</string>
     <string name="foto_origen_galeria">Seleccionar de la galería</string>
     <string name="foto_origen_camara">Tomar foto con la cámara</string>
+
+    <!-- Menú -->
+    <string name="menu_abrir">Abrir menú</string>
+    <string name="menu_top_zonas">Top Zonas</string>
+    <string name="menu_perro_mes">Perro del Mes/Semana</string>
+    <string name="menu_valorar_perros">Valorar perros</string>
+
+    <!-- Top Zonas -->
+    <string name="top_zonas_titulo">Top Zonas</string>
+    <string name="top_zonas_subtitulo">Los lugares mejor valorados por la comunidad</string>
+    <string name="top_zonas_vacio">Aún no hay lugares valorados</string>
+    <string name="top_zonas_sin_categoria">Sin categoría</string>
+    <string name="top_zonas_puesto">#%d</string>
+    <string name="top_zonas_sin_valoraciones">Sin valoraciones</string>
+
+    <plurals name="top_zonas_valoracion">
+        <item quantity="one">★ %1$.1f · %2$d reseña</item>
+        <item quantity="other">★ %1$.1f · %2$d reseñas</item>
+    </plurals>
+
+    <!-- Perro del Mes/Semana -->
+    <string name="perro_mes_titulo">Perro del Mes/Semana</string>
+    <string name="perro_mes_semana">Semana</string>
+    <string name="perro_mes_mes">Mes</string>
+    <string name="perro_mes_subir">Subir foto de mi perro</string>
+    <string name="perro_mes_vacio">Aún no hay perros. ¡Sube el primero!</string>
+    <string name="perro_mes_nombre">Nombre del perro</string>
+    <string name="perro_mes_de">de %s</string>
+    <string name="perro_mes_likes">♥ %d</string>
+    <string name="perro_mes_dislikes">✕ %d</string>
+    <string name="perro_mes_dialogo_titulo">Subir foto</string>
+    <string name="perro_mes_dialogo_aceptar">Subir</string>
+    <string name="perro_mes_subido">¡Perro subido!</string>
+    <string name="perro_imagen_desc">Foto del perro</string>
+    <string name="error_nombre_perro">Escribe el nombre del perro</string>
+
+    <!-- Valorar perros -->
+    <string name="valorar_titulo">Valorar perros</string>
+    <string name="valorar_instruccion">Desliza a la derecha para Like y a la izquierda para descartar</string>
+    <string name="valorar_like">Me gusta</string>
+    <string name="valorar_dislike">No me gusta</string>
+    <string name="valorar_vacio">No hay más perros por valorar. ¡Sube el tuyo!</string>
 </resources>

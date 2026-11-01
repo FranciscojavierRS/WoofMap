@@ -236,6 +236,8 @@ public class LugarDetailSheet extends BottomSheetDialogFragment {
         viewModel.getComentarios().observe(getViewLifecycleOwner(), lista -> {
             comentarioAdapter.submitList(lista);
             binding.textoSinComentarios.setVisibility(lista.isEmpty() ? View.VISIBLE : View.GONE);
+            binding.textoComentariosTitulo.setText(
+                    getString(R.string.detalle_comentarios_con_total, lista.size()));
         });
         viewModel.getSubiendoFoto().observe(getViewLifecycleOwner(), subiendo ->
                 binding.progresoFoto.setVisibility(Boolean.TRUE.equals(subiendo) ? View.VISIBLE : View.GONE));
@@ -311,7 +313,7 @@ public class LugarDetailSheet extends BottomSheetDialogFragment {
             boolean activa = i < llenas;
             estrella.setImageResource(activa ? R.drawable.ic_estrella_llena : R.drawable.ic_estrella);
             estrella.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(requireContext(),
-                    activa ? R.color.woofmap_lavanda : R.color.woofmap_texto_secundario)));
+                    activa ? R.color.woofmap_estrella : R.color.woofmap_borde)));
         }
     }
 
