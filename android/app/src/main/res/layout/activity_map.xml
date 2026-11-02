@@ -286,7 +286,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:contentDescription="@string/mapa_anadir_lugar"
-            android:src="@drawable/ic_add"
+            android:src="@drawable/ic_pata"
             app:backgroundTint="@color/woofmap_primary"
             app:borderWidth="0dp"
             app:elevation="6dp"

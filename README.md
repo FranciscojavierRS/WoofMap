@@ -71,3 +71,4 @@ Para empezar de cero: `docker compose down -v` (borra también las fotos y la ba
 ## Estado
 
 Ver la hoja de ruta en `Docs/WoofMap– Documento técnico y hoja de ruta.md`.
+Memoria de desarrollo: `Docs/Memoria_Desarrollo.md`.
