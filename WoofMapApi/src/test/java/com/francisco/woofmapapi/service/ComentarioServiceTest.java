@@ -117,4 +117,29 @@ class ComentarioServiceTest {
         assertThatThrownBy(() -> comentarioService.listarComentarios(99L))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
+
+    @Test
+    @DisplayName("editarComentario: el autor actualiza texto y valoracion")
+    void editarComentario_autor_actualiza() {
+        Comentario original = new Comentario(7L, "Antiguo", (short) 2, lugar, usuario, Instant.now());
+        when(comentarioRepository.findById(7L)).thenReturn(Optional.of(original));
+        when(comentarioRepository.save(original)).thenReturn(original);
+
+        ComentarioResponse response = comentarioService.editarComentario(
+                10L, 7L, new ComentarioRequest("Nuevo", (short) 5), 1L);
+
+        assertThat(response.texto()).isEqualTo("Nuevo");
+        assertThat(response.valoracion()).isEqualTo((short) 5);
+    }
+
+    @Test
+    @DisplayName("eliminarComentario: otro usuario sin rol admin no puede borrar")
+    void eliminarComentario_ajeno_deniega() {
+        Comentario original = new Comentario(7L, "Hola", (short) 4, lugar, usuario, Instant.now());
+        when(comentarioRepository.findById(7L)).thenReturn(Optional.of(original));
+
+        assertThatThrownBy(() -> comentarioService.eliminarComentario(10L, 7L, 2L))
+                .isInstanceOf(AccessDeniedException.class);
+        verify(comentarioRepository, never()).delete(any());
+    }
 }

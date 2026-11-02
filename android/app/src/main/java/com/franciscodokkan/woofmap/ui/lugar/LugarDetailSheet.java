@@ -6,11 +6,14 @@ import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -29,10 +32,14 @@ import androidx.recyclerview.widget.PagerSnapHelper;
 import com.franciscodokkan.woofmap.R;
 import com.franciscodokkan.woofmap.data.local.TokenStore;
 import com.franciscodokkan.woofmap.data.remote.ApiClient;
+import com.franciscodokkan.woofmap.data.remote.model.ComentarioResponse;
+import com.franciscodokkan.woofmap.data.remote.model.FotoResponse;
 import com.franciscodokkan.woofmap.data.remote.model.LugarResponse;
 import com.franciscodokkan.woofmap.data.repository.ComentarioRepository;
+import com.franciscodokkan.woofmap.data.repository.FavoritoRepository;
 import com.franciscodokkan.woofmap.data.repository.FotoRepository;
 import com.franciscodokkan.woofmap.data.repository.LugarRepository;
+import com.franciscodokkan.woofmap.data.repository.ReporteRepository;
 import com.franciscodokkan.woofmap.databinding.DialogEditLugarBinding;
 import com.franciscodokkan.woofmap.databinding.SheetLugarDetailBinding;
 import com.franciscodokkan.woofmap.ui.SimpleViewModelFactory;
@@ -75,6 +82,7 @@ public class LugarDetailSheet extends BottomSheetDialogFragment {
     private long lugarId;
     private long usuarioIdActual;
     private long usuarioIdLugar;
+    private boolean esAdministrador;
     private Uri cameraTempUri;
     private boolean hojaConfigurada;
 
@@ -115,7 +123,9 @@ public class LugarDetailSheet extends BottomSheetDialogFragment {
         Bundle args = requireArguments();
         lugarId = args.getLong(ARG_LUGAR_ID, -1);
         usuarioIdLugar = args.getLong(ARG_USUARIO_ID, -1);
-        usuarioIdActual = TokenStore.getInstance(requireContext()).getUsuarioId();
+        TokenStore sesion = TokenStore.getInstance(requireContext());
+        usuarioIdActual = sesion.getUsuarioId();
+        esAdministrador = sesion.esAdministrador();
         if (savedInstanceState != null) {
             cameraTempUri = BundleCompat.getParcelable(savedInstanceState, ESTADO_CAMARA_URI, Uri.class);
         }
@@ -137,8 +147,10 @@ public class LugarDetailSheet extends BottomSheetDialogFragment {
         LugarRepository lugarRepo = new LugarRepository(ApiClient.lugares(requireContext()));
         FotoRepository fotoRepo = new FotoRepository(ApiClient.fotos(requireContext()));
         ComentarioRepository comentarioRepo = new ComentarioRepository(ApiClient.comentarios(requireContext()));
+        FavoritoRepository favoritoRepo = new FavoritoRepository(ApiClient.favoritos(requireContext()));
+        ReporteRepository reporteRepo = new ReporteRepository(ApiClient.reportes(requireContext()));
         viewModel = new ViewModelProvider(this, new SimpleViewModelFactory<>(
-                () -> new LugarDetailViewModel(lugarRepo, fotoRepo, comentarioRepo)))
+                () -> new LugarDetailViewModel(lugarRepo, fotoRepo, comentarioRepo, favoritoRepo, reporteRepo)))
                 .get(LugarDetailViewModel.class);
 
         binding.textoNombre.setText(args.getString(ARG_NOMBRE));
@@ -160,19 +172,31 @@ public class LugarDetailSheet extends BottomSheetDialogFragment {
         binding.botonAnadirFoto.setOnClickListener(v -> mostrarOpcionesFoto());
         binding.botonAnadirComentario.setOnClickListener(v -> mostrarDialogoComentario());
 
-        boolean esCreador = usuarioIdActual != -1 && usuarioIdActual == usuarioIdLugar;
-        binding.botonEditar.setVisibility(esCreador ? View.VISIBLE : View.GONE);
-        binding.botonEliminar.setVisibility(esCreador ? View.VISIBLE : View.GONE);
+        boolean puedeEditar = esAdministrador
+                || (usuarioIdActual != -1 && usuarioIdActual == usuarioIdLugar);
+        binding.botonEditar.setVisibility(puedeEditar ? View.VISIBLE : View.GONE);
+        binding.botonEliminar.setVisibility(puedeEditar ? View.VISIBLE : View.GONE);
+        binding.botonReportarLugar.setVisibility(puedeEditar ? View.GONE : View.VISIBLE);
         binding.botonEditar.setOnClickListener(v -> abrirEdicion());
         binding.botonEliminar.setOnClickListener(v -> confirmarEliminar());
+        binding.botonReportarLugar.setOnClickListener(v ->
+                mostrarDialogoReporte("LUGAR", lugarId));
+        binding.botonFavorito.setOnClickListener(v -> viewModel.alternarFavorito(lugarId));
+        viewModel.cargarFavorito(lugarId);
 
         getParentFragmentManager().setFragmentResultListener(
                 CreateComentarioDialog.RESULTADO,
                 getViewLifecycleOwner(),
-                (clave, resultado) -> viewModel.crearComentario(
-                        lugarId,
-                        resultado.getString(CreateComentarioDialog.CLAVE_TEXTO),
-                        resultado.getShort(CreateComentarioDialog.CLAVE_VALORACION)));
+                (clave, resultado) -> {
+                    long comentarioId = resultado.getLong(CreateComentarioDialog.CLAVE_ID, -1L);
+                    String texto = resultado.getString(CreateComentarioDialog.CLAVE_TEXTO);
+                    short valoracion = resultado.getShort(CreateComentarioDialog.CLAVE_VALORACION);
+                    if (comentarioId == -1L) {
+                        viewModel.crearComentario(lugarId, texto, valoracion);
+                    } else {
+                        viewModel.editarComentario(lugarId, comentarioId, texto, valoracion);
+                    }
+                });
     }
 
     @Override
@@ -207,13 +231,13 @@ public class LugarDetailSheet extends BottomSheetDialogFragment {
 
     private void setupRecyclers() {
         int anchoFoto = (int) (getResources().getDisplayMetrics().widthPixels * 0.88f);
-        fotoAdapter = new FotoAdapter(anchoFoto);
+        fotoAdapter = new FotoAdapter(anchoFoto, this::mostrarMenuFoto);
         binding.recyclerFotos.setLayoutManager(
                 new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.recyclerFotos.setAdapter(fotoAdapter);
         new PagerSnapHelper().attachToRecyclerView(binding.recyclerFotos);
 
-        comentarioAdapter = new ComentarioAdapter();
+        comentarioAdapter = new ComentarioAdapter(this::mostrarMenuComentario);
         binding.recyclerComentarios.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.recyclerComentarios.setAdapter(comentarioAdapter);
     }
@@ -266,6 +290,18 @@ public class LugarDetailSheet extends BottomSheetDialogFragment {
                 i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(i);
                 requireActivity().finish();
+            }
+        });
+        viewModel.getFavorito().observe(getViewLifecycleOwner(), marcado -> {
+            boolean activo = Boolean.TRUE.equals(marcado);
+            binding.botonFavorito.setImageResource(
+                    activo ? R.drawable.ic_estrella_llena : R.drawable.ic_estrella);
+            binding.botonFavorito.setImageTintList(ContextCompat.getColorStateList(
+                    requireContext(), activo ? R.color.woofmap_estrella : R.color.woofmap_text_secondary));
+        });
+        viewModel.getReporteEnviado().observe(getViewLifecycleOwner(), enviado -> {
+            if (Boolean.TRUE.equals(enviado)) {
+                Toast.makeText(requireContext(), R.string.reporte_enviado, Toast.LENGTH_SHORT).show();
             }
         });
         viewModel.getLugar().observe(getViewLifecycleOwner(), l -> {
@@ -352,8 +388,99 @@ public class LugarDetailSheet extends BottomSheetDialogFragment {
     }
 
     private void mostrarDialogoComentario() {
-        new CreateComentarioDialog()
+        CreateComentarioDialog.nuevo()
                 .show(getParentFragmentManager(), "comentario");
+    }
+
+    private void mostrarMenuComentario(ComentarioResponse comentario, View ancla) {
+        if (comentario.id == null) {
+            return;
+        }
+        boolean propietario = usuarioIdActual != -1 && usuarioIdActual == comentario.usuarioId;
+        boolean puedeModerar = esAdministrador || propietario;
+
+        PopupMenu menu = new PopupMenu(requireContext(), ancla);
+        if (puedeModerar) {
+            menu.getMenu().add(Menu.NONE, 1, 1, R.string.detalle_editar);
+            menu.getMenu().add(Menu.NONE, 2, 2, R.string.detalle_eliminar);
+        } else {
+            menu.getMenu().add(Menu.NONE, 3, 3, R.string.detalle_reportar);
+        }
+        menu.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case 1 -> CreateComentarioDialog.editar(comentario)
+                        .show(getParentFragmentManager(), "comentario");
+                case 2 -> new AlertDialog.Builder(requireContext())
+                        .setMessage(R.string.eliminar_comentario_mensaje)
+                        .setPositiveButton(R.string.eliminar_lugar_confirmar,
+                                (d, w) -> viewModel.eliminarComentario(lugarId, comentario.id))
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show();
+                case 3 -> mostrarDialogoReporte("COMENTARIO", comentario.id);
+                default -> {
+                    return false;
+                }
+            }
+            return true;
+        });
+        menu.show();
+    }
+
+    private void mostrarMenuFoto(FotoResponse foto, View ancla) {
+        if (foto.id == null) {
+            return;
+        }
+        boolean propietario = usuarioIdActual != -1 && usuarioIdActual == foto.usuarioId;
+        boolean puedeEliminar = esAdministrador || propietario;
+
+        PopupMenu menu = new PopupMenu(requireContext(), ancla);
+        if (puedeEliminar) {
+            menu.getMenu().add(Menu.NONE, 1, 1, R.string.detalle_eliminar);
+        } else {
+            menu.getMenu().add(Menu.NONE, 2, 2, R.string.detalle_reportar);
+        }
+        menu.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case 1 -> new AlertDialog.Builder(requireContext())
+                        .setMessage(R.string.eliminar_foto_mensaje)
+                        .setPositiveButton(R.string.eliminar_lugar_confirmar,
+                                (d, w) -> viewModel.eliminarFoto(lugarId, foto.id))
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show();
+                case 2 -> mostrarDialogoReporte("FOTO", foto.id);
+                default -> {
+                    return false;
+                }
+            }
+            return true;
+        });
+        menu.show();
+    }
+
+    private void mostrarDialogoReporte(String tipo, long referenciaId) {
+        EditText campo = new EditText(requireContext());
+        campo.setHint(R.string.reporte_motivo_hint);
+        int margen = (int) (16 * getResources().getDisplayMetrics().density);
+        FrameLayout contenedor = new FrameLayout(requireContext());
+        contenedor.setPadding(margen, margen / 2, margen, 0);
+        contenedor.addView(campo);
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.detalle_reportar)
+                .setView(contenedor)
+                .setPositiveButton(R.string.reporte_enviar, null)
+                .setNegativeButton(android.R.string.cancel, null)
+                .create();
+        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String motivo = campo.getText() != null ? campo.getText().toString().trim() : "";
+            if (motivo.isEmpty()) {
+                Toast.makeText(requireContext(), R.string.reporte_motivo_obligatorio, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            viewModel.reportar(tipo, referenciaId, motivo);
+            dialog.dismiss();
+        }));
+        dialog.show();
     }
 
     private void abrirEdicion() {

@@ -101,4 +101,15 @@ public class PerroController {
         perroService.votar(id, request, usuarioId);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar un perro", description = "Solo el autor o un administrador.")
+    public ResponseEntity<Void> eliminar(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        Long usuarioId = principal != null ? principal.id() : null;
+        perroService.eliminarPerro(id, usuarioId);
+        return ResponseEntity.noContent().build();
+    }
 }

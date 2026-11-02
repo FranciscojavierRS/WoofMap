@@ -16,6 +16,8 @@ public interface LugarRepository extends JpaRepository<Lugar, Long> {
 
     List<Lugar> findAllByOrderByIdAsc(Pageable pageable);
 
+    List<Lugar> findByUsuarioIdOrderByIdDesc(Long usuarioId, Pageable pageable);
+
     // Sin GROUP BY a proposito: agrupar por la entidad incluiria la columna geography.
     @Query("""
             SELECT l,

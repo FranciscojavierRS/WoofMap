@@ -16,8 +16,10 @@ import com.franciscodokkan.woofmap.data.remote.model.ComentarioResponse;
 import com.franciscodokkan.woofmap.data.remote.model.FotoResponse;
 import com.franciscodokkan.woofmap.data.remote.model.LugarResponse;
 import com.franciscodokkan.woofmap.data.repository.ComentarioRepository;
+import com.franciscodokkan.woofmap.data.repository.FavoritoRepository;
 import com.franciscodokkan.woofmap.data.repository.FotoRepository;
 import com.franciscodokkan.woofmap.data.repository.LugarRepository;
+import com.franciscodokkan.woofmap.data.repository.ReporteRepository;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -34,6 +36,8 @@ public class LugarDetailViewModelTest {
     private LugarRepository lugarRepo;
     private FotoRepository fotoRepo;
     private ComentarioRepository comentarioRepo;
+    private FavoritoRepository favoritoRepo;
+    private ReporteRepository reporteRepo;
     private LugarDetailViewModel viewModel;
 
     @Before
@@ -41,7 +45,10 @@ public class LugarDetailViewModelTest {
         lugarRepo = mock(LugarRepository.class);
         fotoRepo = mock(FotoRepository.class);
         comentarioRepo = mock(ComentarioRepository.class);
-        viewModel = new LugarDetailViewModel(lugarRepo, fotoRepo, comentarioRepo, Runnable::run);
+        favoritoRepo = mock(FavoritoRepository.class);
+        reporteRepo = mock(ReporteRepository.class);
+        viewModel = new LugarDetailViewModel(
+                lugarRepo, fotoRepo, comentarioRepo, favoritoRepo, reporteRepo, Runnable::run);
     }
 
     @Test

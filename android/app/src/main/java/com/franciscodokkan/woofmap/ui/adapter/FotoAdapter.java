@@ -1,6 +1,7 @@
 package com.franciscodokkan.woofmap.ui.adapter;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -16,9 +17,14 @@ import com.franciscodokkan.woofmap.databinding.ItemFotoBinding;
 
 public class FotoAdapter extends ListAdapter<FotoResponse, FotoAdapter.ViewHolder> {
 
-    private final int anchoItemPx;
+    public interface OnMenuListener {
+        void onMenu(FotoResponse foto, View ancla);
+    }
 
-    public FotoAdapter(int anchoItemPx) {
+    private final int anchoItemPx;
+    private final OnMenuListener listener;
+
+    public FotoAdapter(int anchoItemPx, OnMenuListener listener) {
         super(new DiffUtil.ItemCallback<FotoResponse>() {
             @Override
             public boolean areItemsTheSame(@NonNull FotoResponse a, @NonNull FotoResponse b) {
@@ -30,6 +36,7 @@ public class FotoAdapter extends ListAdapter<FotoResponse, FotoAdapter.ViewHolde
             }
         });
         this.anchoItemPx = anchoItemPx;
+        this.listener = listener;
     }
 
     @NonNull
@@ -45,12 +52,18 @@ public class FotoAdapter extends ListAdapter<FotoResponse, FotoAdapter.ViewHolde
         holder.bind(getItem(position));
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder {
         private final ItemFotoBinding binding;
 
         ViewHolder(ItemFotoBinding b) {
             super(b.getRoot());
             this.binding = b;
+            binding.botonMenuFoto.setOnClickListener(v -> {
+                int posicion = getBindingAdapterPosition();
+                if (posicion != RecyclerView.NO_POSITION && listener != null) {
+                    listener.onMenu(getItem(posicion), v);
+                }
+            });
         }
 
         void bind(FotoResponse foto) {

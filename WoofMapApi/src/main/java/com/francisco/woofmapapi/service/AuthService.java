@@ -75,7 +75,8 @@ public class AuthService {
                     token,
                     usuarioGuardado.getId(),
                     usuarioGuardado.getNombre(),
-                    usuarioGuardado.getEmail()
+                    usuarioGuardado.getEmail(),
+                    usuarioGuardado.isAdministrador()
             );
         } catch (DataIntegrityViolationException e) {
             throw new EmailAlreadyExistsException("El email ya esta registrado: " + email);
@@ -107,7 +108,8 @@ public class AuthService {
                 token,
                 usuario.getId(),
                 usuario.getNombre(),
-                usuario.getEmail()
+                usuario.getEmail(),
+                usuario.isAdministrador()
         );
     }
 

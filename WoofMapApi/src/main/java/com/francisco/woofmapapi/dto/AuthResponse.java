@@ -5,9 +5,14 @@ public record AuthResponse(
         String tipo,
         Long usuarioId,
         String nombre,
-        String email
+        String email,
+        boolean administrador
 ) {
     public AuthResponse(String token, Long usuarioId, String nombre, String email) {
-        this(token, "Bearer", usuarioId, nombre, email);
+        this(token, "Bearer", usuarioId, nombre, email, false);
+    }
+
+    public AuthResponse(String token, Long usuarioId, String nombre, String email, boolean administrador) {
+        this(token, "Bearer", usuarioId, nombre, email, administrador);
     }
 }

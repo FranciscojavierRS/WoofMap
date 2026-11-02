@@ -49,6 +49,19 @@
             android:name=".ui.perro.ValorarPerrosActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ui.perfil.ProfileActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.favoritos.FavoritosActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.admin.AdminActivity"
+            android:exported="false" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

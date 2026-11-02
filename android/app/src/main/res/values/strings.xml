@@ -25,7 +25,6 @@
     <!-- Map -->
     <string name="mapa_cerrar_sesion">Salir</string>
     <string name="mapa_perfil">Perfil</string>
-    <string name="mapa_perfil_no_disponible">El perfil todavía no está disponible</string>
     <string name="mapa_sin_lugares">No hay lugares cerca todavía</string>
     <string name="mapa_permiso_denegado">Sin permiso de ubicación: mostrando Madrid</string>
     <string name="mapa_error_ubicacion">No se pudo obtener tu ubicación</string>
@@ -40,7 +39,6 @@
     <string name="mapa_explorar">Explorar</string>
     <string name="mapa_favoritos">Favoritos</string>
     <string name="mapa_mas">Más</string>
-    <string name="mapa_favoritos_no_disponible">Los favoritos todavía no están disponibles</string>
     <string name="menu_cerrar_sesion">Cerrar sesión</string>
 
     <!-- Crear lugar -->
@@ -99,9 +97,46 @@
 
     <!-- Comentario -->
     <string name="comentario_titulo">Nuevo comentario</string>
+    <string name="comentario_editar_titulo">Editar comentario</string>
     <string name="comentario_placeholder">Escribe tu comentario…</string>
     <string name="comentario_publicar">Publicar</string>
     <string name="comentario_usuario">Usuario #%d</string>
+    <string name="detalle_reportar">Reportar</string>
+    <string name="eliminar_comentario_mensaje">¿Eliminar este comentario?</string>
+    <string name="eliminar_foto_mensaje">¿Eliminar esta foto?</string>
+    <string name="reporte_motivo_hint">Motivo del reporte</string>
+    <string name="reporte_enviar">Enviar reporte</string>
+    <string name="reporte_enviado">Reporte enviado. Gracias por avisar.</string>
+    <string name="reporte_motivo_obligatorio">Escribe el motivo del reporte</string>
+
+    <!-- Perfil -->
+    <string name="perfil_titulo">Mi perfil</string>
+    <string name="perfil_email_fijo">El email no se puede cambiar</string>
+    <string name="perfil_guardar">Guardar cambios</string>
+    <string name="perfil_guardado">Perfil actualizado</string>
+    <string name="perfil_admin">Ir a administración</string>
+    <string name="perfil_mis_lugares">Mis lugares</string>
+    <string name="perfil_mis_perros">Fotos de mis perros</string>
+    <string name="perfil_sin_lugares">Todavía no has creado lugares</string>
+    <string name="perfil_sin_perros">Todavía no has subido fotos de tus perros</string>
+
+    <!-- Favoritos -->
+    <string name="favoritos_subtitulo">Pulsa un lugar para verlo en el mapa</string>
+    <string name="favoritos_vacio">Todavía no tienes lugares favoritos</string>
+
+    <!-- Administración -->
+    <string name="menu_admin">Administración</string>
+    <string name="admin_titulo">Administración</string>
+    <string name="admin_subtitulo">Reportes de la comunidad</string>
+    <string name="admin_sin_reportes">No hay reportes</string>
+    <string name="admin_reporte_tipo">%1$s #%2$d</string>
+    <string name="admin_reporte_autor">Reportado por %s</string>
+    <string name="admin_resolver">Resuelto</string>
+    <string name="admin_resuelto">Resuelto ✓</string>
+    <string name="admin_eliminar_contenido">Borrar contenido</string>
+    <string name="admin_eliminar_confirmar">¿Borrar el contenido reportado? No se puede deshacer.</string>
+    <string name="admin_accion_ok">Acción completada</string>
+    <string name="admin_sin_permiso">Solo un administrador puede entrar aquí</string>
 
     <!-- Errores -->
     <string name="error_nombre_obligatorio">El nombre es obligatorio</string>

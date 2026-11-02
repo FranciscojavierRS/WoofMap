@@ -6,6 +6,7 @@ import java.util.List;
 
 import okhttp3.MultipartBody;
 import retrofit2.Call;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
@@ -23,4 +24,9 @@ public interface FotoApi {
     @GET("lugares/{lugarId}/fotos")
     Call<List<FotoResponse>> listarFotos(
             @Path("lugarId") long lugarId);
+
+    @DELETE("lugares/{lugarId}/fotos/{id}")
+    Call<Void> eliminarFoto(
+            @Path("lugarId") long lugarId,
+            @Path("id") long fotoId);
 }

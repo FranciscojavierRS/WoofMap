@@ -63,4 +63,16 @@ public class FotoController {
     ) {
         return ResponseEntity.ok(fotoService.listarFotosDeLugar(lugarId));
     }
+
+    @DeleteMapping("/{fotoId}")
+    @Operation(summary = "Eliminar una foto", description = "Solo el autor o un administrador.")
+    public ResponseEntity<Void> eliminarFoto(
+            @PathVariable Long lugarId,
+            @PathVariable Long fotoId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        Long usuarioId = principal != null ? principal.id() : null;
+        fotoService.eliminarFoto(lugarId, fotoId, usuarioId);
+        return ResponseEntity.noContent().build();
+    }
 }

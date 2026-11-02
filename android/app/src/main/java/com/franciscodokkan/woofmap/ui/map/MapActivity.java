@@ -28,9 +28,12 @@ import com.franciscodokkan.woofmap.data.repository.LugarRepository;
 import com.franciscodokkan.woofmap.databinding.ActivityMapBinding;
 import com.franciscodokkan.woofmap.ui.MapaEstilo;
 import com.franciscodokkan.woofmap.ui.SimpleViewModelFactory;
+import com.franciscodokkan.woofmap.ui.admin.AdminActivity;
 import com.franciscodokkan.woofmap.ui.auth.LoginActivity;
+import com.franciscodokkan.woofmap.ui.favoritos.FavoritosActivity;
 import com.franciscodokkan.woofmap.ui.lugar.CreateLugarActivity;
 import com.franciscodokkan.woofmap.ui.lugar.LugarDetailSheet;
+import com.franciscodokkan.woofmap.ui.perfil.ProfileActivity;
 import com.franciscodokkan.woofmap.ui.perro.PerroMesActivity;
 import com.franciscodokkan.woofmap.ui.perro.ValorarPerrosActivity;
 import com.franciscodokkan.woofmap.ui.top.TopZonasActivity;
@@ -79,6 +82,13 @@ public class MapActivity extends AppCompatActivity {
                 }
             });
 
+    private final ActivityResultLauncher<Intent> favoritosLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    irALugarFavorito(result.getData());
+                }
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,8 +108,8 @@ public class MapActivity extends AppCompatActivity {
         observarViewModel();
         configurarChips();
         configurarBusqueda();
-        binding.botonPerfil.setOnClickListener(v -> Toast.makeText(
-                this, R.string.mapa_perfil_no_disponible, Toast.LENGTH_SHORT).show());
+        binding.botonPerfil.setOnClickListener(v ->
+                startActivity(new Intent(this, ProfileActivity.class)));
         binding.botonCrearLugar.setOnClickListener(v -> abrirCrearLugar());
         binding.botonMenu.setOnClickListener(this::mostrarMenu);
         binding.botonMas.setOnClickListener(this::mostrarMenu);
@@ -107,8 +117,8 @@ public class MapActivity extends AppCompatActivity {
         binding.botonMapa.setOnClickListener(v -> binding.tarjetaLugar.setVisibility(View.GONE));
         binding.botonExplorar.setOnClickListener(v ->
                 startActivity(new Intent(this, TopZonasActivity.class)));
-        binding.botonFavoritos.setOnClickListener(v -> Toast.makeText(
-                this, R.string.mapa_favoritos_no_disponible, Toast.LENGTH_SHORT).show());
+        binding.botonFavoritos.setOnClickListener(v ->
+                favoritosLauncher.launch(new Intent(this, FavoritosActivity.class)));
         binding.botonCerrarTarjeta.setOnClickListener(v -> binding.tarjetaLugar.setVisibility(View.GONE));
         binding.botonVerDetalle.setOnClickListener(v -> {
             if (lugarSeleccionado != null) {
@@ -168,13 +178,19 @@ public class MapActivity extends AppCompatActivity {
 
     private void mostrarMenu(View ancla) {
         PopupMenu menu = new PopupMenu(this, ancla);
+        menu.getMenu().add(Menu.NONE, 1, 1, R.string.mapa_perfil);
         menu.getMenu().add(Menu.NONE, 2, 2, R.string.menu_perro_mes);
         menu.getMenu().add(Menu.NONE, 3, 3, R.string.menu_valorar_perros);
-        menu.getMenu().add(Menu.NONE, 4, 4, R.string.menu_cerrar_sesion);
+        if (TokenStore.getInstance(this).esAdministrador()) {
+            menu.getMenu().add(Menu.NONE, 5, 4, R.string.menu_admin);
+        }
+        menu.getMenu().add(Menu.NONE, 4, 5, R.string.menu_cerrar_sesion);
         menu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
+                case 1 -> startActivity(new Intent(this, ProfileActivity.class));
                 case 2 -> startActivity(new Intent(this, PerroMesActivity.class));
                 case 3 -> startActivity(new Intent(this, ValorarPerrosActivity.class));
+                case 5 -> startActivity(new Intent(this, AdminActivity.class));
                 case 4 -> cerrarSesion();
                 default -> {
                     return false;
@@ -228,6 +244,22 @@ public class MapActivity extends AppCompatActivity {
     private void abrirDetalleLugar(LugarResponse lugar) {
         LugarDetailSheet.newInstance(lugar)
                 .show(getSupportFragmentManager(), "detalle");
+    }
+
+    private void irALugarFavorito(Intent datos) {
+        double lat = datos.getDoubleExtra(FavoritosActivity.EXTRA_LAT, Double.NaN);
+        double lon = datos.getDoubleExtra(FavoritosActivity.EXTRA_LON, Double.NaN);
+        if (Double.isNaN(lat) || Double.isNaN(lon) || mapa == null) {
+            return;
+        }
+        mapa.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 15));
+        long id = datos.getLongExtra(FavoritosActivity.EXTRA_LUGAR_ID, -1L);
+        for (LugarResponse lugar : lugares) {
+            if (lugar.id != null && lugar.id == id) {
+                mostrarTarjeta(lugar);
+                break;
+            }
+        }
     }
 
     private void observarViewModel() {

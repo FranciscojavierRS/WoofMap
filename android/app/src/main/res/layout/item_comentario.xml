@@ -27,6 +27,14 @@
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:textAppearance="?attr/textAppearanceLabelSmall" />
+
+        <ImageButton
+            android:id="@+id/botonMenuComentario"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/menu_abrir"
+            android:src="@drawable/ic_mas" />
     </LinearLayout>
 
     <TextView

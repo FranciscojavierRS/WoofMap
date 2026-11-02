@@ -24,6 +24,9 @@ public class Usuario {
     @Column(name = "fecha_alta", nullable = false, updatable = false)
     private Instant fechaAlta = Instant.now();
 
+    @Column(nullable = false)
+    private boolean administrador;
+
     public Usuario() {
     }
 
@@ -73,6 +76,14 @@ public class Usuario {
 
     public void setFechaAlta(Instant fechaAlta) {
         this.fechaAlta = fechaAlta;
+    }
+
+    public boolean isAdministrador() {
+        return administrador;
+    }
+
+    public void setAdministrador(boolean administrador) {
+        this.administrador = administrador;
     }
 
     @Override

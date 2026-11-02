@@ -9,6 +9,7 @@ import com.francisco.woofmapapi.exception.ResourceNotFoundException;
 import com.francisco.woofmapapi.repository.ComentarioRepository;
 import com.francisco.woofmapapi.repository.LugarRepository;
 import com.francisco.woofmapapi.repository.UsuarioRepository;
+import com.francisco.woofmapapi.security.UserPrincipal;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -70,6 +71,50 @@ public class ComentarioService {
 
         Comentario guardado = comentarioRepository.save(comentario);
         return toResponse(guardado);
+    }
+
+    public ComentarioResponse editarComentario(Long lugarId, Long comentarioId,
+                                               ComentarioRequest request, Long usuarioId) {
+        Comentario comentario = comentarioDeLugar(lugarId, comentarioId);
+        comprobarPropietarioOAdmin(comentario, usuarioId);
+        comentario.setTexto(request.texto());
+        comentario.setValoracion(request.valoracion());
+        return toResponse(comentarioRepository.save(comentario));
+    }
+
+    public void eliminarComentario(Long lugarId, Long comentarioId, Long usuarioId) {
+        eliminar(comentarioDeLugar(lugarId, comentarioId), usuarioId);
+    }
+
+    /** Borrado desde el panel de administracion, sin conocer el lugar. */
+    public void eliminarComentarioPorId(Long comentarioId) {
+        Comentario comentario = comentarioRepository.findById(comentarioId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Comentario no encontrado con id: " + comentarioId));
+        eliminar(comentario, null);
+    }
+
+    private void eliminar(Comentario comentario, Long usuarioId) {
+        comprobarPropietarioOAdmin(comentario, usuarioId);
+        comentarioRepository.delete(comentario);
+    }
+
+    private Comentario comentarioDeLugar(Long lugarId, Long comentarioId) {
+        Comentario comentario = comentarioRepository.findById(comentarioId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Comentario no encontrado con id: " + comentarioId));
+        if (!comentario.getLugar().getId().equals(lugarId)) {
+            throw new ResourceNotFoundException("Comentario no encontrado con id: " + comentarioId);
+        }
+        return comentario;
+    }
+
+    private void comprobarPropietarioOAdmin(Comentario comentario, Long usuarioId) {
+        boolean esPropietario = usuarioId != null
+                && comentario.getUsuario().getId().equals(usuarioId);
+        if (!esPropietario && !UserPrincipal.esAdministradorActual()) {
+            throw new AccessDeniedException("Solo el autor o un administrador puede modificar este comentario");
+        }
     }
 
     private ComentarioResponse toResponse(Comentario c) {

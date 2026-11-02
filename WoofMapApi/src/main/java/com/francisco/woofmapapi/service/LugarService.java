@@ -10,6 +10,7 @@ import com.francisco.woofmapapi.repository.ComentarioRepository;
 import com.francisco.woofmapapi.repository.FotoRepository;
 import com.francisco.woofmapapi.repository.LugarRepository;
 import com.francisco.woofmapapi.repository.UsuarioRepository;
+import com.francisco.woofmapapi.security.UserPrincipal;
 import com.francisco.woofmapapi.service.storage.AlmacenamientoFotos;
 import com.francisco.woofmapapi.util.GeometryUtils;
 import org.locationtech.jts.geom.Point;
@@ -79,6 +80,19 @@ public class LugarService {
 
         Lugar guardado = lugarRepository.save(lugar);
         return toResponse(guardado, null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<LugarResponse> listarDeUsuario(Long usuarioId) {
+        return lugarRepository.findByUsuarioIdOrderByIdDesc(usuarioId, PageRequest.of(0, LIMITE_LISTADO))
+                .stream()
+                .map(lugar -> toResponse(lugar, null))
+                .toList();
+    }
+
+    /** Reutilizado por favoritos y perfil para no duplicar el mapeo. */
+    public LugarResponse aResponse(Lugar lugar) {
+        return toResponse(lugar, null);
     }
 
     @Transactional(readOnly = true)
@@ -152,7 +166,8 @@ public class LugarService {
         Lugar lugar = lugarRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lugar no encontrado con id: " + id));
 
-        if (usuarioId == null || !lugar.getUsuario().getId().equals(usuarioId)) {
+        if (usuarioId == null || (!lugar.getUsuario().getId().equals(usuarioId)
+                && !UserPrincipal.esAdministradorActual())) {
             throw new AccessDeniedException("No tienes permisos para modificar este lugar. Solo el creador puede editarlo.");
         }
 
@@ -169,7 +184,8 @@ public class LugarService {
         Lugar lugar = lugarRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lugar no encontrado con id: " + id));
 
-        if (usuarioId == null || !lugar.getUsuario().getId().equals(usuarioId)) {
+        if (usuarioId == null || (!lugar.getUsuario().getId().equals(usuarioId)
+                && !UserPrincipal.esAdministradorActual())) {
             throw new AccessDeniedException("No tienes permisos para eliminar este lugar. Solo el creador puede eliminarlo.");
         }
 

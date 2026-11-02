@@ -9,6 +9,7 @@ import com.francisco.woofmapapi.exception.ResourceNotFoundException;
 import com.francisco.woofmapapi.repository.PerroRepository;
 import com.francisco.woofmapapi.repository.UsuarioRepository;
 import com.francisco.woofmapapi.repository.VotoPerroRepository;
+import com.francisco.woofmapapi.security.UserPrincipal;
 import com.francisco.woofmapapi.service.storage.AlmacenamientoFotos;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
@@ -88,6 +89,14 @@ public class PerroService {
     }
 
     @Transactional(readOnly = true)
+    public List<PerroResponse> listarDeUsuario(Long usuarioId) {
+        return perroRepository.findByUsuarioIdOrderByIdDesc(usuarioId, PageRequest.of(0, LIMITE_RANKING))
+                .stream()
+                .map(perro -> toResponse(perro, 0, 0))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<PerroResponse> ranking(String periodo) {
         Instant desde = "SEMANA".equalsIgnoreCase(periodo)
                 ? Instant.now().minus(7, ChronoUnit.DAYS)
@@ -131,6 +140,28 @@ public class PerroService {
 
         votoPerroRepository.save(new VotoPerro(
                 null, perro, usuario, Boolean.TRUE.equals(request.positivo()), Instant.now()));
+    }
+
+    public void eliminarPerro(Long perroId, Long usuarioId) {
+        Perro perro = perroRepository.findById(perroId)
+                .orElseThrow(() -> new ResourceNotFoundException("Perro no encontrado con id: " + perroId));
+        boolean esPropietario = usuarioId != null && perro.getUsuario().getId().equals(usuarioId);
+        if (!esPropietario && !UserPrincipal.esAdministradorActual()) {
+            throw new AccessDeniedException("Solo el autor o un administrador puede eliminar este perro");
+        }
+
+        String url = perro.getUrl();
+        perroRepository.delete(perro);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    eliminarIgnorandoErrores(url);
+                }
+            });
+        } else {
+            eliminarIgnorandoErrores(url);
+        }
     }
 
     private void eliminarIgnorandoErrores(String url) {

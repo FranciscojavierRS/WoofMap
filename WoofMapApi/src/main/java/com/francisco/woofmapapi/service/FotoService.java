@@ -8,6 +8,7 @@ import com.francisco.woofmapapi.exception.ResourceNotFoundException;
 import com.francisco.woofmapapi.repository.FotoRepository;
 import com.francisco.woofmapapi.repository.LugarRepository;
 import com.francisco.woofmapapi.repository.UsuarioRepository;
+import com.francisco.woofmapapi.security.UserPrincipal;
 import com.francisco.woofmapapi.service.storage.AlmacenamientoFotos;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
@@ -103,6 +104,42 @@ public class FotoService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    public void eliminarFoto(Long lugarId, Long fotoId, Long usuarioId) {
+        Foto foto = fotoRepository.findById(fotoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Foto no encontrada con id: " + fotoId));
+        if (!foto.getLugar().getId().equals(lugarId)) {
+            throw new ResourceNotFoundException("Foto no encontrada con id: " + fotoId);
+        }
+        eliminar(foto, usuarioId);
+    }
+
+    /** Borrado desde el panel de administracion, sin conocer el lugar. */
+    public void eliminarFotoPorId(Long fotoId) {
+        Foto foto = fotoRepository.findById(fotoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Foto no encontrada con id: " + fotoId));
+        eliminar(foto, null);
+    }
+
+    private void eliminar(Foto foto, Long usuarioId) {
+        boolean esPropietario = usuarioId != null && foto.getUsuario().getId().equals(usuarioId);
+        if (!esPropietario && !UserPrincipal.esAdministradorActual()) {
+            throw new AccessDeniedException("Solo el autor o un administrador puede eliminar esta foto");
+        }
+
+        String url = foto.getUrl();
+        fotoRepository.delete(foto);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    eliminarIgnorandoErrores(url);
+                }
+            });
+        } else {
+            eliminarIgnorandoErrores(url);
+        }
     }
 
     private FotoResponse toResponse(Foto foto) {

@@ -13,6 +13,8 @@ import java.util.List;
 @Repository
 public interface PerroRepository extends JpaRepository<Perro, Long> {
 
+    List<Perro> findByUsuarioIdOrderByIdDesc(Long usuarioId, Pageable pageable);
+
     @Query("""
             SELECT p,
                    COALESCE(SUM(CASE WHEN v.positivo = true THEN 1 ELSE 0 END), 0),

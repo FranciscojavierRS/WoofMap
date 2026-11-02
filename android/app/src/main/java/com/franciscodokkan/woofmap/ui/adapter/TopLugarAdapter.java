@@ -16,7 +16,17 @@ import java.util.Locale;
 
 public class TopLugarAdapter extends ListAdapter<LugarResponse, TopLugarAdapter.ViewHolder> {
 
+    public interface OnLugarClickListener {
+        void onLugar(LugarResponse lugar);
+    }
+
+    private final OnLugarClickListener listener;
+
     public TopLugarAdapter() {
+        this(null);
+    }
+
+    public TopLugarAdapter(OnLugarClickListener listener) {
         super(new DiffUtil.ItemCallback<LugarResponse>() {
             @Override
             public boolean areItemsTheSame(@NonNull LugarResponse a, @NonNull LugarResponse b) {
@@ -32,6 +42,7 @@ public class TopLugarAdapter extends ListAdapter<LugarResponse, TopLugarAdapter.
                         && a.totalComentarios != null && a.totalComentarios.equals(b.totalComentarios);
             }
         });
+        this.listener = listener;
     }
 
     @NonNull
@@ -47,12 +58,18 @@ public class TopLugarAdapter extends ListAdapter<LugarResponse, TopLugarAdapter.
         holder.bind(getItem(position), position);
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder {
         private final ItemTopLugarBinding binding;
 
         ViewHolder(ItemTopLugarBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
+            binding.getRoot().setOnClickListener(v -> {
+                int posicion = getBindingAdapterPosition();
+                if (posicion != RecyclerView.NO_POSITION && listener != null) {
+                    listener.onLugar(getItem(posicion));
+                }
+            });
         }
 
         void bind(LugarResponse lugar, int position) {

@@ -63,4 +63,29 @@ public class ComentarioController {
         ComentarioResponse response = comentarioService.crearComentario(lugarId, request, usuarioId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @PutMapping("/{comentarioId}")
+    @Operation(summary = "Editar un comentario", description = "Solo el autor o un administrador.")
+    public ResponseEntity<ComentarioResponse> editarComentario(
+            @PathVariable Long lugarId,
+            @PathVariable Long comentarioId,
+            @Valid @RequestBody ComentarioRequest request,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        Long usuarioId = principal != null ? principal.id() : null;
+        return ResponseEntity.ok(
+                comentarioService.editarComentario(lugarId, comentarioId, request, usuarioId));
+    }
+
+    @DeleteMapping("/{comentarioId}")
+    @Operation(summary = "Eliminar un comentario", description = "Solo el autor o un administrador.")
+    public ResponseEntity<Void> eliminarComentario(
+            @PathVariable Long lugarId,
+            @PathVariable Long comentarioId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        Long usuarioId = principal != null ? principal.id() : null;
+        comentarioService.eliminarComentario(lugarId, comentarioId, usuarioId);
+        return ResponseEntity.noContent().build();
+    }
 }

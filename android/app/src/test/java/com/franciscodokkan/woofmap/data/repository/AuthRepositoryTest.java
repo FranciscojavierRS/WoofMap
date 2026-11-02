@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -58,7 +59,7 @@ public class AuthRepositoryTest {
 
         assertTrue(resultado.esExito());
         assertEquals("abc123", resultado.datos.token);
-        verify(tokenStore).guardarSesion("abc123", 1L);
+        verify(tokenStore).guardarSesion("abc123", 1L, false);
     }
 
     @Test
@@ -73,7 +74,7 @@ public class AuthRepositoryTest {
         assertFalse(resultado.esExito());
         assertEquals(401, resultado.codigo);
         assertEquals("Credenciales incorrectas", resultado.error);
-        verify(tokenStore, never()).guardarSesion(any(), any());
+        verify(tokenStore, never()).guardarSesion(any(), any(), anyBoolean());
     }
 
     @Test
@@ -88,7 +89,7 @@ public class AuthRepositoryTest {
                 repositorio.registrar("Ana", "ana@woofmap.com", "12345678");
 
         assertTrue(resultado.esExito());
-        verify(tokenStore).guardarSesion("nuevo", 2L);
+        verify(tokenStore).guardarSesion("nuevo", 2L, false);
     }
 
     @Test

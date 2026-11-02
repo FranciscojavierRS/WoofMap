@@ -7,4 +7,5 @@ public class AuthResponse {
     public Long usuarioId;
     public String nombre;
     public String email;
+    public boolean administrador;
 }

@@ -23,4 +23,8 @@ public class FotoRepository {
     public ApiResult<List<FotoResponse>> listar(long lugarId) {
         return ApiResult.lista(api.listarFotos(lugarId));
     }
+
+    public ApiResult<Void> eliminar(long lugarId, long fotoId) {
+        return ApiResult.ejecutar(api.eliminarFoto(lugarId, fotoId));
+    }
 }

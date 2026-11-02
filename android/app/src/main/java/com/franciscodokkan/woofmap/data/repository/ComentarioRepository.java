@@ -22,4 +22,12 @@ public class ComentarioRepository {
     public ApiResult<ComentarioResponse> crear(long lugarId, ComentarioRequest request) {
         return ApiResult.ejecutar(api.crearComentario(lugarId, request));
     }
+
+    public ApiResult<ComentarioResponse> editar(long lugarId, long comentarioId, ComentarioRequest request) {
+        return ApiResult.ejecutar(api.editarComentario(lugarId, comentarioId, request));
+    }
+
+    public ApiResult<Void> eliminar(long lugarId, long comentarioId) {
+        return ApiResult.ejecutar(api.eliminarComentario(lugarId, comentarioId));
+    }
 }

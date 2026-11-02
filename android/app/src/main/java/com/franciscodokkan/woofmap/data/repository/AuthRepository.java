@@ -28,7 +28,7 @@ public class AuthRepository {
     private ApiResult<AuthResponse> guardarSesion(ApiResult<AuthResponse> resultado) {
         if (resultado.esExito() && resultado.datos != null) {
             AuthResponse sesion = resultado.datos;
-            tokenStore.guardarSesion(sesion.token, sesion.usuarioId);
+            tokenStore.guardarSesion(sesion.token, sesion.usuarioId, sesion.administrador);
         }
         return resultado;
     }

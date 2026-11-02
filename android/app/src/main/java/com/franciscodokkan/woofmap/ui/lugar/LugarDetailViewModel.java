@@ -14,8 +14,10 @@ import com.franciscodokkan.woofmap.data.remote.model.FotoResponse;
 import com.franciscodokkan.woofmap.data.remote.model.LugarRequest;
 import com.franciscodokkan.woofmap.data.remote.model.LugarResponse;
 import com.franciscodokkan.woofmap.data.repository.ComentarioRepository;
+import com.franciscodokkan.woofmap.data.repository.FavoritoRepository;
 import com.franciscodokkan.woofmap.data.repository.FotoRepository;
 import com.franciscodokkan.woofmap.data.repository.LugarRepository;
+import com.franciscodokkan.woofmap.data.repository.ReporteRepository;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -36,6 +38,8 @@ public class LugarDetailViewModel extends ViewModel {
     private final LugarRepository lugarRepo;
     private final FotoRepository fotoRepo;
     private final ComentarioRepository comentarioRepo;
+    private final FavoritoRepository favoritoRepo;
+    private final ReporteRepository reporteRepo;
     private final Executor ejecutor;
 
     private final MutableLiveData<LugarResponse> lugar = new MutableLiveData<>();
@@ -47,15 +51,24 @@ public class LugarDetailViewModel extends ViewModel {
     private final MutableLiveData<Boolean> lugarEliminado = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> lugarEditado = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> sesionExpirada = new MutableLiveData<>(false);
+    private final MutableLiveData<Boolean> favorito = new MutableLiveData<>(false);
+    private final MutableLiveData<Boolean> reporteEnviado = new MutableLiveData<>(false);
 
-    public LugarDetailViewModel(LugarRepository lugarRepo, FotoRepository fotoRepo, ComentarioRepository comentarioRepo) {
-        this(lugarRepo, fotoRepo, comentarioRepo, Executors.newSingleThreadExecutor());
+    public LugarDetailViewModel(LugarRepository lugarRepo, FotoRepository fotoRepo,
+                                ComentarioRepository comentarioRepo, FavoritoRepository favoritoRepo,
+                                ReporteRepository reporteRepo) {
+        this(lugarRepo, fotoRepo, comentarioRepo, favoritoRepo, reporteRepo,
+                Executors.newSingleThreadExecutor());
     }
 
-    public LugarDetailViewModel(LugarRepository lugarRepo, FotoRepository fotoRepo, ComentarioRepository comentarioRepo, Executor ejecutor) {
+    public LugarDetailViewModel(LugarRepository lugarRepo, FotoRepository fotoRepo,
+                                ComentarioRepository comentarioRepo, FavoritoRepository favoritoRepo,
+                                ReporteRepository reporteRepo, Executor ejecutor) {
         this.lugarRepo = lugarRepo;
         this.fotoRepo = fotoRepo;
         this.comentarioRepo = comentarioRepo;
+        this.favoritoRepo = favoritoRepo;
+        this.reporteRepo = reporteRepo;
         this.ejecutor = ejecutor;
     }
 
@@ -68,6 +81,8 @@ public class LugarDetailViewModel extends ViewModel {
     public LiveData<Boolean> getLugarEliminado() { return lugarEliminado; }
     public LiveData<Boolean> getLugarEditado() { return lugarEditado; }
     public LiveData<Boolean> getSesionExpirada() { return sesionExpirada; }
+    public LiveData<Boolean> getFavorito() { return favorito; }
+    public LiveData<Boolean> getReporteEnviado() { return reporteEnviado; }
 
     public void cargarFotos(long lugarId) {
         ejecutor.execute(() -> {
@@ -194,6 +209,89 @@ public class LugarDetailViewModel extends ViewModel {
                 lugarEditado.postValue(true);
                 // La respuesta del PUT llega sin valoracion; recargamos para no borrarla en pantalla.
                 cargarLugar(lugarId);
+            } else if (res.esNoAutorizado()) {
+                sesionExpirada.postValue(true);
+            } else {
+                error.postValue(res.error);
+            }
+        });
+    }
+
+    public void editarComentario(long lugarId, long comentarioId, String texto, short valoracion) {
+        ejecutor.execute(() -> {
+            ApiResult<ComentarioResponse> res = comentarioRepo.editar(
+                    lugarId, comentarioId, new ComentarioRequest(texto, valoracion));
+            if (res.esExito()) {
+                cargarComentarios(lugarId);
+                cargarLugar(lugarId);
+            } else if (res.esNoAutorizado()) {
+                sesionExpirada.postValue(true);
+            } else {
+                error.postValue(res.error);
+            }
+        });
+    }
+
+    public void eliminarComentario(long lugarId, long comentarioId) {
+        ejecutor.execute(() -> {
+            ApiResult<Void> res = comentarioRepo.eliminar(lugarId, comentarioId);
+            if (res.esExito()) {
+                cargarComentarios(lugarId);
+                cargarLugar(lugarId);
+            } else if (res.esNoAutorizado()) {
+                sesionExpirada.postValue(true);
+            } else {
+                error.postValue(res.error);
+            }
+        });
+    }
+
+    public void eliminarFoto(long lugarId, long fotoId) {
+        ejecutor.execute(() -> {
+            ApiResult<Void> res = fotoRepo.eliminar(lugarId, fotoId);
+            if (res.esExito()) {
+                cargarFotos(lugarId);
+            } else if (res.esNoAutorizado()) {
+                sesionExpirada.postValue(true);
+            } else {
+                error.postValue(res.error);
+            }
+        });
+    }
+
+    public void cargarFavorito(long lugarId) {
+        ejecutor.execute(() -> {
+            ApiResult<List<com.franciscodokkan.woofmap.data.remote.model.LugarResponse>> res =
+                    favoritoRepo.listar();
+            if (res.esExito()) {
+                boolean marcado = res.datos != null && res.datos.stream()
+                        .anyMatch(lugar -> lugar.id != null && lugar.id == lugarId);
+                favorito.postValue(marcado);
+            } else if (res.esNoAutorizado()) {
+                sesionExpirada.postValue(true);
+            }
+        });
+    }
+
+    public void alternarFavorito(long lugarId) {
+        boolean actual = Boolean.TRUE.equals(favorito.getValue());
+        ejecutor.execute(() -> {
+            ApiResult<Void> res = actual ? favoritoRepo.eliminar(lugarId) : favoritoRepo.anadir(lugarId);
+            if (res.esExito()) {
+                favorito.postValue(!actual);
+            } else if (res.esNoAutorizado()) {
+                sesionExpirada.postValue(true);
+            } else {
+                error.postValue(res.error);
+            }
+        });
+    }
+
+    public void reportar(String tipo, long referenciaId, String motivo) {
+        ejecutor.execute(() -> {
+            ApiResult<?> res = reporteRepo.crear(tipo, referenciaId, motivo);
+            if (res.esExito()) {
+                reporteEnviado.postValue(true);
             } else if (res.esNoAutorizado()) {
                 sesionExpirada.postValue(true);
             } else {
